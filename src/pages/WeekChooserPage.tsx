@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { ChildRecord } from '../lib/supabase';
 import { getExamProfile } from '../lib/examProfiles';
-import { ArrowLeft, Play, Lock, CircleCheck as CheckCircle } from 'lucide-react';
+import { ArrowLeft, Lock, Star } from 'lucide-react';
 
 interface Props {
   childId: string;
@@ -18,12 +18,16 @@ interface WeeklyTestRecord {
   score: number | null;
 }
 
+// Waypoint icons cycle through a small set of fantasy landmarks for visual variety along the path.
+const LANDMARK_ICONS = ['🏰', '🗼', '⛺', '🌉', '🏯', '🛖'];
+
 export function WeekChooserPage({ childId, onStartWeek, onBack }: Props) {
   const [child, setChild]       = useState<ChildRecord | null>(null);
   const [tests, setTests]       = useState<WeeklyTestRecord[]>([]);
   const [loading, setLoading]   = useState(true);
   const [generatingWeek, setGeneratingWeek] = useState<number | null>(null);
   const [error, setError]       = useState('');
+  const currentRef = useRef<HTMLDivElement>(null);
 
   const load = () => {
     setLoading(true);
@@ -38,6 +42,13 @@ export function WeekChooserPage({ childId, onStartWeek, onBack }: Props) {
   };
 
   useEffect(() => { load(); }, [childId]);
+
+  // Scroll the current/next week into view once loaded.
+  useEffect(() => {
+    if (!loading && currentRef.current) {
+      currentRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [loading]);
 
   if (loading || !child) {
     return (
@@ -85,74 +96,142 @@ export function WeekChooserPage({ childId, onStartWeek, onBack }: Props) {
     }
   };
 
+  // ── Path geometry ──────────────────────────────────────────────────────────
+  // Generate a winding zigzag path: alternating left/center/right x-positions per week,
+  // descending down the screen. SVG viewBox uses a fixed width (320) with proportional
+  // height per row so it scales cleanly inside the max-w-lg container.
+  const ROW_HEIGHT = 132;
+  const VB_WIDTH = 320;
+  const xForIndex = (i: number) => {
+    const pattern = [0.5, 0.78, 0.5, 0.22]; // center, right, center, left — repeats
+    return pattern[i % pattern.length] * VB_WIDTH;
+  };
+  const weeks = Array.from({ length: profile.totalWeeks }, (_, i) => i);
+  const points = weeks.map((i) => ({ x: xForIndex(i), y: i * ROW_HEIGHT + 70 }));
+  const vbHeight = weeks.length * ROW_HEIGHT + 100;
+
+  // Smooth path string through all waypoints using quadratic curves between midpoints.
+  const pathD = points.reduce((acc, p, i) => {
+    if (i === 0) return `M ${p.x} ${p.y}`;
+    const prev = points[i - 1];
+    const midY = (prev.y + p.y) / 2;
+    return `${acc} C ${prev.x} ${midY}, ${p.x} ${midY}, ${p.x} ${p.y}`;
+  }, '');
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-twilight-deep via-twilight to-twilight-deep pb-8">
-      <div className="px-4 pt-6 pb-4">
-        <div className="max-w-lg mx-auto flex items-center gap-3 mb-6">
+      {/* Header */}
+      <div className="px-4 pt-6 pb-4 sticky top-0 z-20 bg-gradient-to-b from-twilight-deep via-twilight-deep/95 to-transparent">
+        <div className="max-w-lg mx-auto flex items-center gap-3">
           <button onClick={onBack}
-            className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
+            className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all shrink-0">
             <ArrowLeft className="w-5 h-5 text-parchment-dim" />
           </button>
           <div>
             <p className="text-parchment-dim/60 text-xs font-semibold uppercase tracking-wide">{child.target_exam_type}</p>
-            <h1 className="text-parchment text-xl font-display font-bold">{profile.totalWeeks}-Week Quest</h1>
+            <h1 className="text-parchment text-xl font-display font-bold">{profile.totalWeeks}-Week Quest Map</h1>
           </div>
         </div>
 
         {error && (
-          <div className="max-w-lg mx-auto mb-4 px-4 py-3 bg-realm-coral/10 border border-realm-coral/25 rounded-xl">
+          <div className="max-w-lg mx-auto mt-3 px-4 py-3 bg-realm-coral/10 border border-realm-coral/25 rounded-xl">
             <p className="text-realm-coral text-sm">{error}</p>
           </div>
         )}
       </div>
 
+      {/* Map */}
       <div className="px-4">
-        <div className="max-w-lg mx-auto space-y-3">
-          {Array.from({ length: profile.totalWeeks }, (_, i) => {
-            const week      = i + 1;
-            const done      = completedWeeks.has(week);
-            const unlocked  = week <= maxUnlocked;
+        <div className="max-w-lg mx-auto relative" style={{ height: vbHeight }}>
+          {/* Decorative background path (SVG) */}
+          <svg
+            viewBox={`0 0 ${VB_WIDTH} ${vbHeight}`}
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            preserveAspectRatio="xMidYMin meet"
+          >
+            <path d={pathD} fill="none" stroke="rgba(244,201,93,0.18)" strokeWidth="6" strokeLinecap="round" />
+            <path d={pathD} fill="none" stroke="rgba(244,201,93,0.35)" strokeWidth="2" strokeDasharray="2 10" strokeLinecap="round" />
+          </svg>
+
+          {/* Waypoint nodes */}
+          {weeks.map((i) => {
+            const week       = i + 1;
+            const done       = completedWeeks.has(week);
+            const unlocked   = week <= maxUnlocked;
+            const isCurrent  = unlocked && !done;
             const generating = generatingWeek === week;
             const difficulty = profile.difficultyProgression[i]?.difficulty ?? 5;
+            const score      = tests.find(t => t.week_number === week)?.score;
+            const { x, y }   = points[i];
+            const icon       = LANDMARK_ICONS[i % LANDMARK_ICONS.length];
 
             return (
-              <button key={week} onClick={() => unlocked && !generating && handleWeekTap(week)} disabled={!unlocked || generating}
-                className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl border-2 transition-all ${
-                  done      ? 'border-realm-emerald/40 bg-realm-emerald/10' :
-                  unlocked  ? 'border-quest-gold/30 bg-quest-gold/8 hover:border-quest-gold/50 hover:bg-quest-gold/12 active:scale-[0.98]' :
-                              'border-white/8 bg-white/3 opacity-50 cursor-not-allowed'
-                }`}>
+              <div key={week}
+                ref={isCurrent && week === maxUnlocked ? currentRef : undefined}
+                className="absolute flex flex-col items-center"
+                style={{ left: `${(x / VB_WIDTH) * 100}%`, top: y, transform: 'translate(-50%, -50%)' }}>
 
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 ${
-                  done ? 'bg-realm-emerald/20' : unlocked ? 'bg-quest-gold/15' : 'bg-white/5'
-                }`}>
-                  {generating ? <div className="w-5 h-5 border-2 border-quest-gold border-t-transparent rounded-full animate-spin" /> :
-                   done ? <CheckCircle className="w-6 h-6 text-realm-emerald" /> :
-                   unlocked ? <Play className="w-6 h-6 text-quest-gold" /> :
-                   <Lock className="w-5 h-5 text-white/20" />}
-                </div>
+                <button
+                  onClick={() => unlocked && !generating && handleWeekTap(week)}
+                  disabled={!unlocked || generating}
+                  className={`relative w-20 h-20 rounded-full flex items-center justify-center text-3xl transition-all border-[3px] ${
+                    done      ? 'bg-realm-emerald/20 border-realm-emerald shadow-glow-emerald' :
+                    isCurrent ? 'bg-quest-gold/20 border-quest-gold shadow-glow animate-pulse-ring' :
+                                'bg-white/5 border-white/10 opacity-60'
+                  } ${unlocked && !generating ? 'active:scale-90 hover:scale-105' : 'cursor-not-allowed'}`}
+                >
+                  {generating ? (
+                    <div className="w-7 h-7 border-2 border-quest-gold border-t-transparent rounded-full animate-spin" />
+                  ) : unlocked ? (
+                    <span className={!done && !isCurrent ? 'opacity-50' : ''}>{icon}</span>
+                  ) : (
+                    <Lock className="w-7 h-7 text-white/25" />
+                  )}
 
-                <div className="flex-1 text-left">
-                  <p className={`font-bold font-display ${done ? 'text-realm-emerald' : unlocked ? 'text-parchment' : 'text-parchment-dim/30'}`}>
+                  {/* Score badge for completed weeks */}
+                  {done && score != null && (
+                    <div className="absolute -bottom-1.5 -right-1.5 bg-realm-emerald text-twilight-deep text-[10px] font-bold font-ledger px-1.5 py-0.5 rounded-full border-2 border-twilight-deep">
+                      {score}%
+                    </div>
+                  )}
+
+                  {/* Star ring for current week's difficulty */}
+                  {isCurrent && (
+                    <div className="absolute -top-2 -right-1 flex">
+                      <Star className="w-4 h-4 text-quest-gold fill-quest-gold" />
+                    </div>
+                  )}
+                </button>
+
+                <div className="mt-2 text-center max-w-[88px]">
+                  <p className={`text-xs font-bold font-display leading-tight ${
+                    done ? 'text-realm-emerald' : unlocked ? 'text-parchment' : 'text-parchment-dim/30'
+                  }`}>
                     Week {week}
                   </p>
-                  <p className="text-parchment-dim/60 text-xs mt-0.5">
-                    {generating ? 'Building your adaptive test\u2026' :
-                     done ? `Completed${tests.find(t => t.week_number === week)?.score != null ? ` \u00b7 ${tests.find(t => t.week_number === week)?.score}%` : ''}` :
-                     `${profile.weeklyTestQuestions} questions \u00b7 Difficulty ${difficulty}/10`}
-                  </p>
+                  {generating && (
+                    <p className="text-quest-gold/70 text-[10px] mt-0.5">Building...</p>
+                  )}
+                  {!generating && unlocked && !done && (
+                    <p className="text-parchment-dim/50 text-[10px] mt-0.5">Lvl {difficulty}/10</p>
+                  )}
                 </div>
-
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(difficulty, 5) }).map((_, j) => (
-                    <div key={j} className={`w-1.5 h-1.5 rounded-full ${
-                      done ? 'bg-realm-emerald' : unlocked ? 'bg-quest-gold' : 'bg-white/20'
-                    }`} />
-                  ))}
-                </div>
-              </button>
+              </div>
             );
           })}
+
+          {/* Finish line flag beyond the last week */}
+          <div
+            className="absolute flex flex-col items-center pointer-events-none"
+            style={{
+              left: `${(xForIndex(weeks.length) / VB_WIDTH) * 100}%`,
+              top: weeks.length * ROW_HEIGHT + 70,
+              transform: 'translate(-50%, -50%)',
+            }}
+          >
+            <div className={`text-4xl ${highestCompleted >= profile.totalWeeks ? '' : 'opacity-30'}`}>🏆</div>
+            <p className="text-parchment-dim/50 text-[10px] mt-1 font-display font-bold">Exam Day</p>
+          </div>
         </div>
       </div>
     </div>
