@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sat: env(safe-area-inset-top);
+  --sar: env(safe-area-inset-right);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+}
+
+html, body, #root { height: 100%; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+body { padding-top: var(--sat); padding-right: var(--sar); padding-bottom: var(--sab); padding-left: var(--sal); }
+h1, h2, h3, h4, .font-display { font-family: 'Baloo 2', cursive; }
+* { scroll-behavior: smooth; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(244,201,93,0.25); border-radius: 2px; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn { animation: fadeIn 0.3s ease-out; }
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.animate-slideUp { animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(244,201,93,0.4); }
+  70%  { box-shadow: 0 0 0 10px rgba(244,201,93,0); }
+  100% { box-shadow: 0 0 0 0 rgba(244,201,93,0); }
+}
+.animate-pulse-ring { animation: pulse-ring 2s infinite; }
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.08); }
+}
+.animate-shimmer { animation: shimmer 2.4s ease-in-out infinite; }
+
+@keyframes chestPop {
+  0%   { transform: scale(0.6) rotate(-4deg); opacity: 0; }
+  60%  { transform: scale(1.08) rotate(2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.animate-chestPop { animation: chestPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
