@@ -28,7 +28,7 @@ const STEP_CONFIG = [
   { icon: Target,        label: 'Exam Type',      description: 'Which exam are they sitting?' },
 ];
 
-const AVATARS = ['🧒', '👦', '👧', '🧑', '🎓', '🦊', '🐉', '🦁', '🌟', '⚡', '🦅', '🧙'];
+const AVATARS = ['🧙', '🦸', '🧝', '🦹', '🥷', '🧚', '🐉', '🦁', '🦅', '🦊', '🔮', '⚔️', '🛡️', '👑', '🌟', '⚡', '🧒', '👦', '👧', '🎓'];
 
 const MONTHS = [
   'January','February','March','April','May','June',
@@ -87,15 +87,15 @@ export function ChildProfileWizard({ onComplete, onSkip, isFirstChild = false }:
   const isLast = step === STEP_CONFIG.length - 1;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e2d3d] to-[#0f172a] flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-twilight-deep via-twilight to-twilight-deep flex flex-col">
       {/* Top bar */}
       <div className="px-4 pt-6 pb-4">
         <div className="max-w-md mx-auto">
           {isFirstChild && (
             <div className="text-center mb-6">
-              <div className="text-4xl mb-2">🎉</div>
-              <h1 className="text-2xl font-bold text-white">Welcome to 11+ Quest!</h1>
-              <p className="text-white/50 text-sm mt-1">Let's set up your child's profile</p>
+              <div className="text-4xl mb-2">🗺️</div>
+              <h1 className="text-2xl font-display font-bold text-parchment">Welcome to 11+ Quest!</h1>
+              <p className="text-parchment-dim text-sm mt-1">Let's chart your child's quest</p>
             </div>
           )}
 
@@ -104,14 +104,14 @@ export function ChildProfileWizard({ onComplete, onSkip, isFirstChild = false }:
             {STEP_CONFIG.map((_s, i) => (
               <div key={i} className="flex items-center gap-1">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                  i < step  ? 'bg-emerald-500 text-white' :
-                  i === step ? 'bg-amber-400 text-amber-900 animate-pulse-ring' :
-                  'bg-white/10 text-white/30'
+                  i < step  ? 'bg-realm-emerald text-twilight-deep' :
+                  i === step ? 'bg-quest-gold text-twilight-deep animate-pulse-ring' :
+                  'bg-white/10 text-parchment-dim/40'
                 }`}>
-                  {i < step ? <Check className="w-4 h-4" /> : <span className="text-xs font-bold">{i + 1}</span>}
+                  {i < step ? <Check className="w-4 h-4" /> : <span className="text-xs font-bold font-ledger">{i + 1}</span>}
                 </div>
                 {i < STEP_CONFIG.length - 1 && (
-                  <div className={`h-0.5 w-6 rounded transition-all ${i < step ? 'bg-emerald-500' : 'bg-white/10'}`} />
+                  <div className={`h-0.5 w-6 rounded transition-all ${i < step ? 'bg-realm-emerald' : 'bg-white/10'}`} />
                 )}
               </div>
             ))}
@@ -122,18 +122,18 @@ export function ChildProfileWizard({ onComplete, onSkip, isFirstChild = false }:
       {/* Step content */}
       <div className="flex-1 px-4 pb-4">
         <div className="max-w-md mx-auto">
-          <div className="bg-[#1e2d3d] rounded-3xl border border-white/10 p-6 animate-fadeIn" key={step}>
+          <div className="bg-twilight-surface rounded-scroll border border-quest-gold/15 p-6 animate-fadeIn" key={step}>
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-amber-400/15 flex items-center justify-center">
-                {(() => { const Icon = STEP_CONFIG[step].icon; return <Icon className="w-6 h-6 text-amber-400" />; })()}
+              <div className="w-12 h-12 rounded-2xl bg-quest-gold/15 flex items-center justify-center">
+                {(() => { const Icon = STEP_CONFIG[step].icon; return <Icon className="w-6 h-6 text-quest-gold" />; })()}
               </div>
               <div>
-                <p className="text-white/40 text-xs font-semibold uppercase tracking-wide">Step {step + 1} of {STEP_CONFIG.length}</p>
-                <h2 className="text-white font-bold text-lg leading-tight">{STEP_CONFIG[step].label}</h2>
+                <p className="text-parchment-dim/60 text-xs font-semibold uppercase tracking-wide">Step {step + 1} of {STEP_CONFIG.length}</p>
+                <h2 className="text-parchment font-display font-bold text-lg leading-tight">{STEP_CONFIG[step].label}</h2>
               </div>
             </div>
 
-            <p className="text-white/60 text-sm mb-5">{STEP_CONFIG[step].description}</p>
+            <p className="text-parchment-dim text-sm mb-5">{STEP_CONFIG[step].description}</p>
 
             {/* Step 0: Name + Avatar */}
             {step === 0 && (
@@ -141,14 +141,14 @@ export function ChildProfileWizard({ onComplete, onSkip, isFirstChild = false }:
                 <input
                   type="text" value={data.firstName} onChange={e => set('firstName', e.target.value)}
                   placeholder="First name" autoFocus maxLength={30}
-                  className="w-full px-4 py-4 rounded-2xl bg-white/5 border-2 border-white/10 focus:border-amber-400 focus:outline-none text-white text-lg font-semibold placeholder-white/20"
+                  className="w-full px-4 py-4 rounded-2xl bg-white/5 border-2 border-white/10 focus:border-quest-gold focus:outline-none text-parchment text-lg font-semibold placeholder-parchment-dim/30"
                 />
                 <div>
-                  <p className="text-white/50 text-xs font-semibold mb-3">Choose an avatar</p>
+                  <p className="text-parchment-dim/70 text-xs font-semibold mb-3">Choose your adventurer</p>
                   <div className="grid grid-cols-6 gap-2">
                     {AVATARS.map(av => (
                       <button key={av} onClick={() => set('avatar', av)}
-                        className={`aspect-square rounded-xl flex items-center justify-center text-2xl border-2 transition-all ${data.avatar === av ? 'border-amber-400 bg-amber-400/15 scale-110' : 'border-white/10 bg-white/5 hover:border-white/30'}`}>
+                        className={`aspect-square rounded-xl flex items-center justify-center text-2xl border-2 transition-all ${data.avatar === av ? 'border-quest-gold bg-quest-gold/15 scale-110 shadow-glow' : 'border-white/10 bg-white/5 hover:border-white/30'}`}>
                         {av}
                       </button>
                     ))}
@@ -162,7 +162,7 @@ export function ChildProfileWizard({ onComplete, onSkip, isFirstChild = false }:
               <div className="grid grid-cols-2 gap-3">
                 {ALL_YEAR_GROUPS.map(yg => (
                   <button key={yg} onClick={() => set('yearGroup', yg)}
-                    className={`py-5 rounded-2xl border-2 font-bold text-lg transition-all ${data.yearGroup === yg ? 'border-amber-400 bg-amber-400/15 text-amber-300' : 'border-white/10 bg-white/5 text-white hover:border-white/30'}`}>
+                    className={`py-5 rounded-2xl border-2 font-bold text-lg transition-all ${data.yearGroup === yg ? 'border-quest-gold bg-quest-gold/15 text-quest-gold' : 'border-white/10 bg-white/5 text-parchment hover:border-white/30'}`}>
                     {yg}
                   </button>
                 ))}
@@ -174,9 +174,9 @@ export function ChildProfileWizard({ onComplete, onSkip, isFirstChild = false }:
               <div className="space-y-2">
                 {ALL_TARGET_SCHOOLS.map(school => (
                   <button key={school} onClick={() => set('targetSchool', school)}
-                    className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl border-2 transition-all text-left ${data.targetSchool === school ? 'border-amber-400 bg-amber-400/10 text-white' : 'border-white/10 bg-white/5 text-white/70 hover:border-white/25 hover:bg-white/8'}`}>
+                    className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl border-2 transition-all text-left ${data.targetSchool === school ? 'border-quest-gold bg-quest-gold/10 text-parchment' : 'border-white/10 bg-white/5 text-parchment-dim hover:border-white/25 hover:bg-white/8'}`}>
                     <span className="font-semibold text-sm">{school}</span>
-                    {data.targetSchool === school && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
+                    {data.targetSchool === school && <Check className="w-4 h-4 text-quest-gold shrink-0" />}
                   </button>
                 ))}
               </div>
@@ -185,29 +185,29 @@ export function ChildProfileWizard({ onComplete, onSkip, isFirstChild = false }:
             {/* Step 3: Exam Date */}
             {step === 3 && (
               <div className="space-y-4">
-                <p className="text-white/40 text-xs">Optional — leave blank if not yet confirmed</p>
+                <p className="text-parchment-dim/50 text-xs">Optional — leave blank if not yet confirmed</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-white/50 text-xs font-semibold mb-2">Month</p>
+                    <p className="text-parchment-dim/70 text-xs font-semibold mb-2">Month</p>
                     <select value={data.examMonth} onChange={e => set('examMonth', e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-white/5 border-2 border-white/10 focus:border-amber-400 focus:outline-none text-white appearance-none">
+                      className="w-full px-4 py-3 rounded-xl bg-white/5 border-2 border-white/10 focus:border-quest-gold focus:outline-none text-parchment appearance-none">
                       <option value="">Month</option>
                       {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
                     </select>
                   </div>
                   <div>
-                    <p className="text-white/50 text-xs font-semibold mb-2">Year</p>
+                    <p className="text-parchment-dim/70 text-xs font-semibold mb-2">Year</p>
                     <select value={data.examYear} onChange={e => set('examYear', e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-white/5 border-2 border-white/10 focus:border-amber-400 focus:outline-none text-white appearance-none">
+                      className="w-full px-4 py-3 rounded-xl bg-white/5 border-2 border-white/10 focus:border-quest-gold focus:outline-none text-parchment appearance-none">
                       <option value="">Year</option>
                       {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
                     </select>
                   </div>
                 </div>
                 {data.examMonth && data.examYear && (
-                  <div className="bg-emerald-900/20 border border-emerald-500/20 rounded-xl px-4 py-3 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-emerald-400" />
-                    <p className="text-emerald-300 text-sm font-semibold">Exam: {data.examMonth} {data.examYear}</p>
+                  <div className="bg-realm-emerald/10 border border-realm-emerald/25 rounded-xl px-4 py-3 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-realm-emerald" />
+                    <p className="text-realm-emerald text-sm font-semibold">Exam: {data.examMonth} {data.examYear}</p>
                   </div>
                 )}
               </div>
@@ -218,36 +218,36 @@ export function ChildProfileWizard({ onComplete, onSkip, isFirstChild = false }:
               <div className="space-y-2">
                 {ALL_EXAM_TYPES.map(type => (
                   <button key={type} onClick={() => set('examType', type)}
-                    className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl border-2 transition-all text-left ${data.examType === type ? 'border-amber-400 bg-amber-400/10 text-white' : 'border-white/10 bg-white/5 text-white/70 hover:border-white/25'}`}>
+                    className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl border-2 transition-all text-left ${data.examType === type ? 'border-quest-gold bg-quest-gold/10 text-parchment' : 'border-white/10 bg-white/5 text-parchment-dim hover:border-white/25'}`}>
                     <span className="font-semibold text-sm">{type}</span>
-                    {data.examType === type && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
+                    {data.examType === type && <Check className="w-4 h-4 text-quest-gold shrink-0" />}
                   </button>
                 ))}
               </div>
             )}
 
-            {error && <p className="mt-4 text-red-400 text-sm text-center">{error}</p>}
+            {error && <p className="mt-4 text-realm-coral text-sm text-center">{error}</p>}
           </div>
 
           {/* Navigation */}
           <div className="flex gap-3 mt-4">
             {step > 0 && (
               <button onClick={() => setStep(s => s - 1)}
-                className="flex items-center gap-2 px-5 py-3.5 bg-white/5 hover:bg-white/10 text-white/70 rounded-2xl font-semibold transition-all">
+                className="flex items-center gap-2 px-5 py-3.5 bg-white/5 hover:bg-white/10 text-parchment-dim rounded-2xl font-semibold transition-all">
                 <ChevronLeft className="w-5 h-5" /> Back
               </button>
             )}
             {onSkip && step === 0 && (
-              <button onClick={onSkip} className="px-5 py-3.5 text-white/30 hover:text-white/50 rounded-2xl font-medium transition-colors text-sm">
+              <button onClick={onSkip} className="px-5 py-3.5 text-parchment-dim/50 hover:text-parchment-dim rounded-2xl font-medium transition-colors text-sm">
                 Skip for now
               </button>
             )}
             <button
               onClick={isLast ? handleSave : () => setStep(s => s + 1)}
               disabled={!canAdvance() || saving}
-              className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-amber-500 to-yellow-400 text-amber-900 rounded-2xl font-bold text-lg hover:from-amber-400 transition-all active:scale-95 disabled:opacity-40 shadow-lg"
+              className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-quest-goldDim to-quest-gold text-twilight-deep rounded-2xl font-bold font-display text-lg hover:shadow-glow transition-all active:scale-95 disabled:opacity-40 shadow-lg"
             >
-              {saving ? 'Saving...' : isLast ? `Save ${data.firstName || 'Profile'}!` : 'Continue'}
+              {saving ? 'Saving...' : isLast ? `Begin ${data.firstName || 'the'} Quest!` : 'Continue'}
               {!saving && !isLast && <ChevronRight className="w-5 h-5" />}
               {!saving && isLast && <Check className="w-5 h-5" />}
             </button>

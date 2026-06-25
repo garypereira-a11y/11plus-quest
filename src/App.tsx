@@ -80,10 +80,10 @@ function AppInner() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+      <div className="min-h-screen bg-twilight-deep flex items-center justify-center">
         <div className="text-center">
-          <div className="text-5xl mb-4">🎓</div>
-          <p className="text-white/30 text-sm animate-pulse">Loading 11+ Quest...</p>
+          <div className="text-5xl mb-4 animate-shimmer">🏰</div>
+          <p className="text-parchment-dim text-sm font-display animate-pulse">Entering the realm...</p>
         </div>
       </div>
     );

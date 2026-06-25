@@ -163,32 +163,32 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
 
   if (phase === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e2d3d] to-[#0f172a] flex items-center justify-center">
-        <div className="text-white/30 text-lg animate-pulse">Preparing questions...</div>
+      <div className="min-h-screen bg-gradient-to-br from-twilight-deep via-twilight to-twilight-deep flex items-center justify-center">
+        <div className="text-parchment-dim text-lg font-display animate-pulse">Preparing your quest...</div>
       </div>
     );
   }
 
   if (phase === 'results') {
     const pct = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
-    const colour = pct >= 80 ? 'text-emerald-400' : pct >= 50 ? 'text-amber-400' : 'text-red-400';
+    const colour = pct >= 80 ? 'text-realm-emerald' : pct >= 50 ? 'text-quest-gold' : 'text-realm-coral';
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e2d3d] to-[#0f172a] flex flex-col items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-twilight-deep via-twilight to-twilight-deep flex flex-col items-center justify-center px-4">
         <div className="max-w-sm w-full text-center animate-fadeIn">
-          <div className="text-7xl mb-4">{pct >= 80 ? '🏆' : pct >= 50 ? '⭐' : '💪'}</div>
-          <h1 className="text-white text-3xl font-black mb-2">
-            {pct >= 80 ? 'Brilliant!' : pct >= 50 ? 'Good work!' : 'Keep going!'}
+          <div className="text-7xl mb-4 animate-chestPop">{pct >= 80 ? '🏆' : pct >= 50 ? '🗝️' : '🛡️'}</div>
+          <h1 className="text-parchment text-3xl font-display font-black mb-2">
+            {pct >= 80 ? 'Legendary!' : pct >= 50 ? 'Well fought!' : 'Onward, hero!'}
           </h1>
-          <p className="text-white/50 mb-6">You scored</p>
-          <div className={`text-7xl font-black ${colour} mb-2`}>{pct}%</div>
-          <p className="text-white/40 mb-8">{correctCount} / {questions.length} correct</p>
+          <p className="text-parchment-dim mb-6">You scored</p>
+          <div className={`text-7xl font-display font-black ${colour} mb-2`}>{pct}%</div>
+          <p className="text-parchment-dim/60 mb-8 font-ledger">{correctCount} / {questions.length} correct</p>
           <div className="space-y-3">
             <button onClick={loadQuestions}
-              className="w-full py-4 bg-gradient-to-r from-amber-500 to-yellow-400 text-amber-900 rounded-2xl font-bold text-lg hover:from-amber-400 transition-all active:scale-95 shadow-lg">
+              className="w-full py-4 bg-gradient-to-r from-quest-goldDim to-quest-gold text-twilight-deep rounded-2xl font-bold font-display text-lg hover:shadow-glow transition-all active:scale-95 shadow-lg">
               Try Again
             </button>
             <button onClick={onBack}
-              className="w-full py-4 bg-white/5 text-white/60 rounded-2xl font-semibold hover:bg-white/10 transition-all">
+              className="w-full py-4 bg-white/5 text-parchment-dim rounded-2xl font-semibold hover:bg-white/10 transition-all">
               Back to Dashboard
             </button>
           </div>
@@ -200,28 +200,28 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
   const progress = ((idx + (phase === 'feedback' ? 1 : 0)) / questions.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e2d3d] to-[#0f172a] flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-twilight-deep via-twilight to-twilight-deep flex flex-col">
       {/* Header */}
       <div className="px-4 pt-6 pb-3">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <button onClick={onBack}
               className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
-              <ArrowLeft className="w-5 h-5 text-white/60" />
+              <ArrowLeft className="w-5 h-5 text-parchment-dim" />
             </button>
             <div className="flex-1">
               <div className="h-2 bg-white/8 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-400 rounded-full transition-all duration-500"
+                <div className="h-full bg-gradient-to-r from-quest-goldDim to-quest-gold rounded-full transition-all duration-500"
                   style={{ width: `${progress}%` }} />
               </div>
             </div>
-            <span className="text-white/40 text-sm font-semibold">{idx + 1}/{questions.length}</span>
+            <span className="text-parchment-dim/70 text-sm font-semibold font-ledger">{idx + 1}/{questions.length}</span>
           </div>
 
           {isWeeklyTest && (
             <div className="flex items-center gap-2 mb-3">
-              <Trophy className="w-4 h-4 text-amber-400" />
-              <span className="text-amber-400 text-sm font-semibold">Weekly Test</span>
+              <Trophy className="w-4 h-4 text-quest-gold" />
+              <span className="text-quest-gold text-sm font-semibold font-display">Weekly Quest</span>
             </div>
           )}
         </div>
@@ -230,30 +230,30 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
       {/* Question */}
       <div className="flex-1 px-4 pb-8">
         <div className="max-w-lg mx-auto" key={idx}>
-          <div className="bg-[#1e2d3d] border border-white/10 rounded-3xl p-6 mb-4 animate-fadeIn">
+          <div className="bg-twilight-surface border border-quest-gold/15 rounded-scroll p-6 mb-4 animate-fadeIn">
             {current.topic && (
-              <p className="text-white/30 text-xs font-semibold uppercase tracking-wide mb-3">{current.topic}</p>
+              <p className="text-quest-gold/60 text-xs font-semibold uppercase tracking-wide mb-3">{current.topic}</p>
             )}
-            <p className="text-white text-xl font-bold leading-relaxed">{current.question_text}</p>
+            <p className="text-parchment text-xl font-bold leading-relaxed">{current.question_text}</p>
           </div>
 
           <div className="space-y-3">
             {current.options.map((option, i) => {
               const isSelected = selected === option;
               const isCorrect  = option === getCorrectOptionText(current);
-              let style = 'border-white/10 bg-white/5 text-white hover:border-white/25 hover:bg-white/8';
+              let style = 'border-white/10 bg-white/5 text-parchment hover:border-white/25 hover:bg-white/8';
               if (phase === 'feedback') {
-                if (isCorrect)       style = 'border-emerald-500 bg-emerald-500/15 text-white';
-                else if (isSelected) style = 'border-red-500 bg-red-500/15 text-white';
-                else                 style = 'border-white/5 bg-white/3 text-white/40';
+                if (isCorrect)       style = 'border-realm-emerald bg-realm-emerald/15 text-parchment';
+                else if (isSelected) style = 'border-realm-coral bg-realm-coral/15 text-parchment';
+                else                 style = 'border-white/5 bg-white/3 text-parchment-dim/40';
               }
 
               return (
                 <button key={i} onClick={() => handleAnswer(option)} disabled={phase === 'feedback'}
                   className={`w-full flex items-center gap-3 px-4 py-4 rounded-2xl border-2 transition-all text-left ${style}`}>
                   <span className="w-8 h-8 rounded-full border-2 border-current flex items-center justify-center text-sm font-bold shrink-0">
-                    {phase === 'feedback' && isCorrect  ? <CheckCircle className="w-5 h-5 text-emerald-400" /> :
-                     phase === 'feedback' && isSelected ? <XCircle className="w-5 h-5 text-red-400" /> :
+                    {phase === 'feedback' && isCorrect  ? <CheckCircle className="w-5 h-5 text-realm-emerald" /> :
+                     phase === 'feedback' && isSelected ? <XCircle className="w-5 h-5 text-realm-coral" /> :
                      String.fromCharCode(65 + i)}
                   </span>
                   <span className="font-semibold">{option}</span>
@@ -266,12 +266,12 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
           {phase === 'feedback' && (
             <div className="mt-4 animate-fadeIn">
               {current.explanation && (
-                <div className="bg-sky-900/20 border border-sky-500/20 rounded-2xl px-4 py-3 mb-3">
-                  <p className="text-sky-300 text-sm">{current.explanation}</p>
+                <div className="bg-realm-emerald/10 border border-realm-emerald/20 rounded-2xl px-4 py-3 mb-3">
+                  <p className="text-realm-emerald text-sm">{current.explanation}</p>
                 </div>
               )}
               <button onClick={handleNext}
-                className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-amber-500 to-yellow-400 text-amber-900 rounded-2xl font-bold text-lg hover:from-amber-400 transition-all active:scale-95 shadow-lg">
+                className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-quest-goldDim to-quest-gold text-twilight-deep rounded-2xl font-bold font-display text-lg hover:shadow-glow transition-all active:scale-95 shadow-lg">
                 {idx + 1 >= questions.length ? 'See Results' : 'Next Question'}
                 <ChevronRight className="w-5 h-5" />
               </button>

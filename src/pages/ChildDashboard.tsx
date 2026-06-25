@@ -55,8 +55,8 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e2d3d] to-[#0f172a] flex items-center justify-center">
-        <div className="text-white/30 text-lg animate-pulse">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-br from-twilight-deep via-twilight to-twilight-deep flex items-center justify-center">
+        <div className="text-parchment-dim text-lg font-display animate-pulse">Charting your quest...</div>
       </div>
     );
   }
@@ -81,15 +81,15 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
   })();
 
   const readinessGradient =
-    readinessResult.level === 'exam-ready' ? 'from-emerald-500 to-teal-500' :
-    readinessResult.level === 'on-track'   ? 'from-amber-500 to-yellow-400' :
-                                             'from-red-500 to-rose-500';
+    readinessResult.level === 'exam-ready' ? 'from-realm-emerald to-teal-500' :
+    readinessResult.level === 'on-track'   ? 'from-quest-goldDim to-quest-gold' :
+                                             'from-realm-coral to-rose-500';
 
   const topSubjects = masteries.slice(-3).reverse(); // best 3
   const weakSubjects = masteries.slice(0, 2);        // worst 2
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e2d3d] to-[#0f172a] pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-twilight-deep via-twilight to-twilight-deep pb-8">
       {/* Header */}
       <div className="px-4 pt-6 pb-2">
         <div className="max-w-lg mx-auto">
@@ -97,39 +97,39 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
             {onBack && (
               <button onClick={onBack}
                 className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
-                <ArrowLeft className="w-5 h-5 text-white/60" />
+                <ArrowLeft className="w-5 h-5 text-parchment-dim" />
               </button>
             )}
             <div className="flex-1" />
             <button onClick={onViewLeaderboard}
               className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
-              <Trophy className="w-5 h-5 text-amber-400/80" />
+              <Trophy className="w-5 h-5 text-quest-gold/80" />
             </button>
-            <div className="flex items-center gap-2 bg-amber-400/10 rounded-full px-3 py-1.5">
-              <Flame className="w-4 h-4 text-amber-400" />
-              <span className="text-amber-300 font-bold text-sm">{streak} day streak</span>
+            <div className="flex items-center gap-2 bg-realm-coral/15 rounded-full px-3 py-1.5">
+              <Flame className="w-4 h-4 text-realm-coral" />
+              <span className="text-realm-coral font-bold text-sm font-ledger">{streak} day streak</span>
             </div>
           </div>
 
           {/* Child identity */}
           <div className="flex items-center gap-4 mb-2">
-            <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center text-4xl">
+            <div className="w-16 h-16 rounded-2xl bg-twilight-raised border-2 border-quest-gold/30 flex items-center justify-center text-4xl shadow-glow">
               {child.avatar}
             </div>
             <div>
-              <h1 className="text-white text-2xl font-bold">{child.first_name}</h1>
-              <p className="text-white/40 text-sm">{child.target_school ?? child.target_exam_type} · {child.year_group}</p>
+              <h1 className="text-parchment text-2xl font-display font-bold">{child.first_name}</h1>
+              <p className="text-parchment-dim text-sm">{child.target_school ?? child.target_exam_type} · {child.year_group}</p>
             </div>
           </div>
 
           {/* XP bar */}
           <div className="mt-4">
             <div className="flex justify-between text-xs mb-1.5">
-              <span className="text-amber-400 font-bold flex items-center gap-1"><Star className="w-3 h-3" /> Level {child.level}</span>
-              <span className="text-white/30">{xpInLevel}/100 XP</span>
+              <span className="text-quest-gold font-bold flex items-center gap-1 font-display"><Star className="w-3 h-3" /> Level {child.level}</span>
+              <span className="text-parchment-dim font-ledger">{xpInLevel}/100 XP</span>
             </div>
             <div className="h-2.5 bg-white/8 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-400 rounded-full transition-all"
+              <div className="h-full bg-gradient-to-r from-quest-goldDim to-quest-gold rounded-full transition-all"
                 style={{ width: `${xpInLevel}%` }} />
             </div>
           </div>
@@ -140,13 +140,13 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
         <div className="max-w-lg mx-auto space-y-4">
 
           {/* Readiness card */}
-          <div className={`relative overflow-hidden rounded-3xl p-5 bg-gradient-to-br ${readinessGradient}`}>
+          <div className={`relative overflow-hidden rounded-scroll p-5 bg-gradient-to-br ${readinessGradient}`}>
             <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_70%_50%,white,transparent)]" />
             <div className="relative flex items-center justify-between">
               <div>
-                <p className="text-white/70 text-xs font-semibold uppercase tracking-wide">Exam Readiness</p>
+                <p className="text-white/70 text-xs font-semibold uppercase tracking-wide">Quest Readiness</p>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-white text-5xl font-black">{readinessResult.percentage}%</span>
+                  <span className="text-white text-5xl font-display font-black">{readinessResult.percentage}%</span>
                 </div>
                 <p className="text-white/80 font-bold mt-1">{readinessResult.label}</p>
                 {daysUntil !== null && (
@@ -157,7 +157,7 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
                 )}
               </div>
               <div className="text-right">
-                <div className="text-6xl opacity-30">🎯</div>
+                <div className="text-6xl opacity-30">🏰</div>
               </div>
             </div>
 
@@ -185,35 +185,35 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
           {/* Quick actions */}
           <div className="grid grid-cols-2 gap-3">
             <button onClick={onStartWeeklyTest}
-              className="flex flex-col items-center justify-center gap-2 py-5 bg-gradient-to-br from-amber-500 to-yellow-400 rounded-2xl font-bold text-amber-900 hover:from-amber-400 transition-all active:scale-95 shadow-lg">
+              className="flex flex-col items-center justify-center gap-2 py-5 bg-gradient-to-br from-quest-goldDim to-quest-gold rounded-2xl font-bold text-twilight-deep hover:shadow-glow transition-all active:scale-95 shadow-lg">
               <Play className="w-6 h-6" />
-              <span className="text-sm">Weekly Test</span>
+              <span className="text-sm font-display">Weekly Quest</span>
             </button>
             <button onClick={() => onStartQuiz(profile.subjects[0]?.id ?? 'math')}
-              className="flex flex-col items-center justify-center gap-2 py-5 bg-[#1e2d3d] border border-white/10 rounded-2xl font-bold text-white hover:bg-[#243447] transition-all active:scale-95">
-              <BookOpen className="w-6 h-6 text-sky-400" />
-              <span className="text-sm">Practice</span>
+              className="flex flex-col items-center justify-center gap-2 py-5 bg-twilight-surface border border-quest-gold/15 rounded-2xl font-bold text-parchment hover:bg-twilight-raised transition-all active:scale-95">
+              <BookOpen className="w-6 h-6 text-realm-emerald" />
+              <span className="text-sm font-display">Practice</span>
             </button>
           </div>
 
           {/* Skill mastery */}
           {masteries.length > 0 && (
-            <div className="bg-[#1e2d3d] border border-white/10 rounded-3xl p-5">
+            <div className="bg-twilight-surface border border-quest-gold/15 rounded-scroll p-5">
               <div className="flex items-center gap-2 mb-4">
-                <BarChart2 className="w-5 h-5 text-sky-400" />
-                <h2 className="text-white font-bold">Skill Mastery</h2>
+                <BarChart2 className="w-5 h-5 text-realm-emerald" />
+                <h2 className="text-parchment font-display font-bold">Skill Mastery</h2>
               </div>
               <div className="space-y-2.5">
                 {masteries.map(m => (
                   <div key={m.id}>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-white/70 font-medium">{m.skill_name}</span>
-                      <span className={`font-bold ${m.mastery_score >= 70 ? 'text-emerald-400' : m.mastery_score >= 40 ? 'text-amber-400' : 'text-red-400'}`}>
+                      <span className="text-parchment-dim font-medium">{m.skill_name}</span>
+                      <span className={`font-bold font-ledger ${m.mastery_score >= 70 ? 'text-realm-emerald' : m.mastery_score >= 40 ? 'text-quest-gold' : 'text-realm-coral'}`}>
                         {Math.round(m.mastery_score)}%
                       </span>
                     </div>
                     <div className="h-2 bg-white/8 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full transition-all ${m.mastery_score >= 70 ? 'bg-emerald-500' : m.mastery_score >= 40 ? 'bg-amber-500' : 'bg-red-500'}`}
+                      <div className={`h-full rounded-full transition-all ${m.mastery_score >= 70 ? 'bg-realm-emerald' : m.mastery_score >= 40 ? 'bg-quest-gold' : 'bg-realm-coral'}`}
                         style={{ width: `${m.mastery_score}%` }} />
                     </div>
                   </div>
@@ -223,10 +223,10 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
           )}
 
           {/* Practice subjects */}
-          <div className="bg-[#1e2d3d] border border-white/10 rounded-3xl p-5">
+          <div className="bg-twilight-surface border border-quest-gold/15 rounded-scroll p-5">
             <div className="flex items-center gap-2 mb-4">
-              <Target className="w-5 h-5 text-amber-400" />
-              <h2 className="text-white font-bold">Practice by Subject</h2>
+              <Target className="w-5 h-5 text-quest-gold" />
+              <h2 className="text-parchment font-display font-bold">Practice by Subject</h2>
             </div>
             <div className="space-y-2">
               {profile.subjects.map(subject => {
@@ -237,15 +237,15 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
                     className="w-full flex items-center gap-3 px-4 py-3 bg-white/5 hover:bg-white/8 rounded-2xl transition-all group">
                     <span className="text-2xl">{subject.emoji}</span>
                     <div className="flex-1 text-left">
-                      <p className="text-white font-semibold text-sm">{subject.name}</p>
-                      <p className="text-white/40 text-xs">{subject.description}</p>
+                      <p className="text-parchment font-semibold text-sm">{subject.name}</p>
+                      <p className="text-parchment-dim/70 text-xs">{subject.description}</p>
                     </div>
                     {pct !== null && (
-                      <span className={`text-xs font-bold ${pct >= 70 ? 'text-emerald-400' : pct >= 40 ? 'text-amber-400' : 'text-red-400'}`}>
+                      <span className={`text-xs font-bold font-ledger ${pct >= 70 ? 'text-realm-emerald' : pct >= 40 ? 'text-quest-gold' : 'text-realm-coral'}`}>
                         {pct}%
                       </span>
                     )}
-                    <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/40 transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-quest-gold/60 transition-colors" />
                   </button>
                 );
               })}
@@ -254,16 +254,16 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
 
           {/* Focus areas */}
           {weakSubjects.length > 0 && (
-            <div className="bg-red-900/20 border border-red-500/20 rounded-3xl p-5">
+            <div className="bg-realm-coral/10 border border-realm-coral/25 rounded-scroll p-5">
               <div className="flex items-center gap-2 mb-3">
-                <TrendingUp className="w-5 h-5 text-red-400" />
-                <h2 className="text-white font-bold">Focus Areas</h2>
+                <TrendingUp className="w-5 h-5 text-realm-coral" />
+                <h2 className="text-parchment font-display font-bold">Focus Areas</h2>
               </div>
               <div className="space-y-2">
                 {weakSubjects.map(m => (
                   <div key={m.id} className="flex items-center justify-between">
-                    <span className="text-white/70 text-sm">{m.skill_name}</span>
-                    <span className="text-red-400 font-bold text-sm">{Math.round(m.mastery_score)}%</span>
+                    <span className="text-parchment-dim text-sm">{m.skill_name}</span>
+                    <span className="text-realm-coral font-bold text-sm font-ledger">{Math.round(m.mastery_score)}%</span>
                   </div>
                 ))}
               </div>
@@ -272,16 +272,16 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
 
           {/* Top skills */}
           {topSubjects.length > 0 && (
-            <div className="bg-emerald-900/20 border border-emerald-500/20 rounded-3xl p-5">
+            <div className="bg-realm-emerald/10 border border-realm-emerald/25 rounded-scroll p-5">
               <div className="flex items-center gap-2 mb-3">
-                <Zap className="w-5 h-5 text-emerald-400" />
-                <h2 className="text-white font-bold">Top Skills</h2>
+                <Zap className="w-5 h-5 text-realm-emerald" />
+                <h2 className="text-parchment font-display font-bold">Top Skills</h2>
               </div>
               <div className="space-y-2">
                 {topSubjects.map(m => (
                   <div key={m.id} className="flex items-center justify-between">
-                    <span className="text-white/70 text-sm">{m.skill_name}</span>
-                    <span className="text-emerald-400 font-bold text-sm">{Math.round(m.mastery_score)}%</span>
+                    <span className="text-parchment-dim text-sm">{m.skill_name}</span>
+                    <span className="text-realm-emerald font-bold text-sm font-ledger">{Math.round(m.mastery_score)}%</span>
                   </div>
                 ))}
               </div>
@@ -290,17 +290,17 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
 
           {/* Achievements */}
           {achievements.length > 0 && (
-            <div className="bg-[#1e2d3d] border border-white/10 rounded-3xl p-5">
+            <div className="bg-twilight-surface border border-quest-gold/15 rounded-scroll p-5">
               <div className="flex items-center gap-2 mb-4">
-                <Award className="w-5 h-5 text-yellow-400" />
-                <h2 className="text-white font-bold">Achievements</h2>
+                <Award className="w-5 h-5 text-quest-gold" />
+                <h2 className="text-parchment font-display font-bold">Achievements</h2>
               </div>
               <div className="flex flex-wrap gap-2">
                 {achievements.map(a => (
                   <div key={a.id}
-                    className="flex items-center gap-2 bg-amber-400/10 border border-amber-400/20 rounded-xl px-3 py-2">
-                    <Trophy className="w-3.5 h-3.5 text-amber-400" />
-                    <span className="text-amber-300 text-xs font-semibold">{a.badge_name}</span>
+                    className="flex items-center gap-2 bg-quest-gold/10 border border-quest-gold/25 rounded-xl px-3 py-2">
+                    <Trophy className="w-3.5 h-3.5 text-quest-gold" />
+                    <span className="text-quest-gold text-xs font-semibold">{a.badge_name}</span>
                   </div>
                 ))}
               </div>

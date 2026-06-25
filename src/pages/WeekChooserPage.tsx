@@ -41,8 +41,8 @@ export function WeekChooserPage({ childId, onStartWeek, onBack }: Props) {
 
   if (loading || !child) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e2d3d] to-[#0f172a] flex items-center justify-center">
-        <div className="text-white/30 animate-pulse">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-br from-twilight-deep via-twilight to-twilight-deep flex items-center justify-center">
+        <div className="text-parchment-dim font-display animate-pulse">Charting the realm...</div>
       </div>
     );
   }
@@ -86,22 +86,22 @@ export function WeekChooserPage({ childId, onStartWeek, onBack }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e2d3d] to-[#0f172a] pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-twilight-deep via-twilight to-twilight-deep pb-8">
       <div className="px-4 pt-6 pb-4">
         <div className="max-w-lg mx-auto flex items-center gap-3 mb-6">
           <button onClick={onBack}
             className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
-            <ArrowLeft className="w-5 h-5 text-white/60" />
+            <ArrowLeft className="w-5 h-5 text-parchment-dim" />
           </button>
           <div>
-            <p className="text-white/40 text-xs font-semibold uppercase tracking-wide">{child.target_exam_type}</p>
-            <h1 className="text-white text-xl font-bold">{profile.totalWeeks}-Week Programme</h1>
+            <p className="text-parchment-dim/60 text-xs font-semibold uppercase tracking-wide">{child.target_exam_type}</p>
+            <h1 className="text-parchment text-xl font-display font-bold">{profile.totalWeeks}-Week Quest</h1>
           </div>
         </div>
 
         {error && (
-          <div className="max-w-lg mx-auto mb-4 px-4 py-3 bg-red-900/20 border border-red-500/20 rounded-xl">
-            <p className="text-red-300 text-sm">{error}</p>
+          <div className="max-w-lg mx-auto mb-4 px-4 py-3 bg-realm-coral/10 border border-realm-coral/25 rounded-xl">
+            <p className="text-realm-coral text-sm">{error}</p>
           </div>
         )}
       </div>
@@ -118,25 +118,25 @@ export function WeekChooserPage({ childId, onStartWeek, onBack }: Props) {
             return (
               <button key={week} onClick={() => unlocked && !generating && handleWeekTap(week)} disabled={!unlocked || generating}
                 className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl border-2 transition-all ${
-                  done      ? 'border-emerald-500/40 bg-emerald-900/15' :
-                  unlocked  ? 'border-amber-400/30 bg-amber-400/8 hover:border-amber-400/50 hover:bg-amber-400/12 active:scale-[0.98]' :
+                  done      ? 'border-realm-emerald/40 bg-realm-emerald/10' :
+                  unlocked  ? 'border-quest-gold/30 bg-quest-gold/8 hover:border-quest-gold/50 hover:bg-quest-gold/12 active:scale-[0.98]' :
                               'border-white/8 bg-white/3 opacity-50 cursor-not-allowed'
                 }`}>
 
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 ${
-                  done ? 'bg-emerald-500/20' : unlocked ? 'bg-amber-400/15' : 'bg-white/5'
+                  done ? 'bg-realm-emerald/20' : unlocked ? 'bg-quest-gold/15' : 'bg-white/5'
                 }`}>
-                  {generating ? <div className="w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" /> :
-                   done ? <CheckCircle className="w-6 h-6 text-emerald-400" /> :
-                   unlocked ? <Play className="w-6 h-6 text-amber-400" /> :
+                  {generating ? <div className="w-5 h-5 border-2 border-quest-gold border-t-transparent rounded-full animate-spin" /> :
+                   done ? <CheckCircle className="w-6 h-6 text-realm-emerald" /> :
+                   unlocked ? <Play className="w-6 h-6 text-quest-gold" /> :
                    <Lock className="w-5 h-5 text-white/20" />}
                 </div>
 
                 <div className="flex-1 text-left">
-                  <p className={`font-bold ${done ? 'text-emerald-300' : unlocked ? 'text-white' : 'text-white/30'}`}>
+                  <p className={`font-bold font-display ${done ? 'text-realm-emerald' : unlocked ? 'text-parchment' : 'text-parchment-dim/30'}`}>
                     Week {week}
                   </p>
-                  <p className="text-white/40 text-xs mt-0.5">
+                  <p className="text-parchment-dim/60 text-xs mt-0.5">
                     {generating ? 'Building your adaptive test\u2026' :
                      done ? `Completed${tests.find(t => t.week_number === week)?.score != null ? ` \u00b7 ${tests.find(t => t.week_number === week)?.score}%` : ''}` :
                      `${profile.weeklyTestQuestions} questions \u00b7 Difficulty ${difficulty}/10`}
@@ -146,7 +146,7 @@ export function WeekChooserPage({ childId, onStartWeek, onBack }: Props) {
                 <div className="flex items-center gap-1">
                   {Array.from({ length: Math.min(difficulty, 5) }).map((_, j) => (
                     <div key={j} className={`w-1.5 h-1.5 rounded-full ${
-                      done ? 'bg-emerald-400' : unlocked ? 'bg-amber-400' : 'bg-white/20'
+                      done ? 'bg-realm-emerald' : unlocked ? 'bg-quest-gold' : 'bg-white/20'
                     }`} />
                   ))}
                 </div>

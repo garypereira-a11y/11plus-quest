@@ -41,21 +41,21 @@ export function AuthPage({ onSuccess }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e2d3d] to-[#0f172a] flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-twilight-deep via-twilight to-twilight-deep flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="text-6xl mb-3">🎓</div>
-          <h1 className="text-white text-3xl font-black">11+ Quest</h1>
-          <p className="text-white/40 text-sm mt-1">Master the entrance exam</p>
+          <div className="text-6xl mb-3 animate-shimmer">🏰</div>
+          <h1 className="text-parchment text-3xl font-display font-extrabold tracking-wide">11+ Quest</h1>
+          <p className="text-parchment-dim text-sm mt-1">Begin your child's realm of learning</p>
         </div>
 
         {/* Tab switcher */}
         <div className="flex bg-white/5 rounded-2xl p-1 mb-6">
           {(['signIn', 'signUp'] as Mode[]).map(m => (
             <button key={m} onClick={() => { setMode(m); setError(''); }}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                mode === m ? 'bg-amber-400 text-amber-900 shadow-sm' : 'text-white/50 hover:text-white/70'
+              className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all font-display ${
+                mode === m ? 'bg-quest-gold text-twilight-deep shadow-sm' : 'text-parchment-dim hover:text-parchment'
               }`}>
               {m === 'signIn' ? 'Sign In' : 'Sign Up'}
             </button>
@@ -66,16 +66,16 @@ export function AuthPage({ onSuccess }: Props) {
         {mode === 'signUp' && (
           <div className="grid grid-cols-2 gap-3 mb-5">
             <button onClick={() => setIsParent(true)}
-              className={`flex flex-col items-center gap-2 py-4 rounded-2xl border-2 transition-all ${isParent ? 'border-amber-400 bg-amber-400/10' : 'border-white/10 bg-white/5 hover:border-white/25'}`}>
-              <Users className={`w-6 h-6 ${isParent ? 'text-amber-400' : 'text-white/40'}`} />
-              <span className={`text-xs font-bold ${isParent ? 'text-amber-300' : 'text-white/50'}`}>Parent</span>
-              <span className="text-white/25 text-[10px] text-center leading-tight">Manage children's profiles</span>
+              className={`flex flex-col items-center gap-2 py-4 rounded-2xl border-2 transition-all ${isParent ? 'border-quest-gold bg-quest-gold/10' : 'border-white/10 bg-white/5 hover:border-white/25'}`}>
+              <Users className={`w-6 h-6 ${isParent ? 'text-quest-gold' : 'text-parchment-dim/60'}`} />
+              <span className={`text-xs font-bold font-display ${isParent ? 'text-quest-gold' : 'text-parchment-dim'}`}>Parent</span>
+              <span className="text-parchment-dim/50 text-[10px] text-center leading-tight">Manage children's profiles</span>
             </button>
             <button onClick={() => setIsParent(false)}
-              className={`flex flex-col items-center gap-2 py-4 rounded-2xl border-2 transition-all ${!isParent ? 'border-amber-400 bg-amber-400/10' : 'border-white/10 bg-white/5 hover:border-white/25'}`}>
-              <GraduationCap className={`w-6 h-6 ${!isParent ? 'text-amber-400' : 'text-white/40'}`} />
-              <span className={`text-xs font-bold ${!isParent ? 'text-amber-300' : 'text-white/50'}`}>Student</span>
-              <span className="text-white/25 text-[10px] text-center leading-tight">Direct learning access</span>
+              className={`flex flex-col items-center gap-2 py-4 rounded-2xl border-2 transition-all ${!isParent ? 'border-quest-gold bg-quest-gold/10' : 'border-white/10 bg-white/5 hover:border-white/25'}`}>
+              <GraduationCap className={`w-6 h-6 ${!isParent ? 'text-quest-gold' : 'text-parchment-dim/60'}`} />
+              <span className={`text-xs font-bold font-display ${!isParent ? 'text-quest-gold' : 'text-parchment-dim'}`}>Student</span>
+              <span className="text-parchment-dim/50 text-[10px] text-center leading-tight">Direct learning access</span>
             </button>
           </div>
         )}
@@ -84,41 +84,41 @@ export function AuthPage({ onSuccess }: Props) {
         <div className="space-y-3 mb-4">
           {mode === 'signUp' && (
             <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25" />
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-parchment-dim/40" />
               <input type="text" value={name} onChange={e => setName(e.target.value)}
                 placeholder="Your name" autoComplete="name"
-                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/5 border-2 border-white/10 focus:border-amber-400 focus:outline-none text-white placeholder-white/20 font-medium" />
+                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/5 border-2 border-white/10 focus:border-quest-gold focus:outline-none text-parchment placeholder-parchment-dim/30 font-medium" />
             </div>
           )}
           <input type="email" value={email} onChange={e => setEmail(e.target.value)}
             placeholder="Email address" autoComplete="email"
-            className="w-full px-4 py-4 rounded-2xl bg-white/5 border-2 border-white/10 focus:border-amber-400 focus:outline-none text-white placeholder-white/20 font-medium" />
+            className="w-full px-4 py-4 rounded-2xl bg-white/5 border-2 border-white/10 focus:border-quest-gold focus:outline-none text-parchment placeholder-parchment-dim/30 font-medium" />
           <div className="relative">
             <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
               placeholder="Password" autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'}
               onKeyDown={e => e.key === 'Enter' && submit()}
-              className="w-full px-4 pr-12 py-4 rounded-2xl bg-white/5 border-2 border-white/10 focus:border-amber-400 focus:outline-none text-white placeholder-white/20 font-medium" />
+              className="w-full px-4 pr-12 py-4 rounded-2xl bg-white/5 border-2 border-white/10 focus:border-quest-gold focus:outline-none text-parchment placeholder-parchment-dim/30 font-medium" />
             <button type="button" onClick={() => setShowPw(s => !s)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-parchment-dim/50 hover:text-parchment-dim transition-colors">
               {showPw ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
         {error && (
-          <div className="bg-red-900/30 border border-red-500/30 rounded-xl px-4 py-3 mb-4">
-            <p className="text-red-300 text-sm">{error}</p>
+          <div className="bg-realm-coral/15 border border-realm-coral/30 rounded-xl px-4 py-3 mb-4">
+            <p className="text-realm-coral text-sm">{error}</p>
           </div>
         )}
 
         <button onClick={submit} disabled={loading}
-          className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-amber-500 to-yellow-400 text-amber-900 rounded-2xl font-bold text-lg hover:from-amber-400 transition-all active:scale-95 disabled:opacity-50 shadow-lg">
+          className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-quest-goldDim to-quest-gold text-twilight-deep rounded-2xl font-bold font-display text-lg hover:shadow-glow transition-all active:scale-95 disabled:opacity-50 shadow-lg">
           {loading ? <Loader className="w-5 h-5 animate-spin" /> : mode === 'signIn' ? 'Sign In' : 'Create Account'}
         </button>
 
-        <p className="text-center text-white/30 text-xs mt-6">
+        <p className="text-center text-parchment-dim/50 text-xs mt-6">
           By continuing you agree to our{' '}
-          <button className="text-white/50 underline hover:text-white/70 transition-colors">Privacy Policy</button>
+          <button className="text-parchment-dim underline hover:text-parchment transition-colors">Privacy Policy</button>
         </p>
       </div>
     </div>

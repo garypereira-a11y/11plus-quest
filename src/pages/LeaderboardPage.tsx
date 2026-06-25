@@ -39,23 +39,23 @@ export function LeaderboardPage({ onBack }: Props) {
   }, []);
 
   const medal = (rank: number) => {
-    if (rank === 0) return <Trophy className="w-5 h-5 text-yellow-400" />;
-    if (rank === 1) return <Medal className="w-5 h-5 text-slate-400" />;
-    if (rank === 2) return <Medal className="w-5 h-5 text-amber-600" />;
-    return <span className="text-white/30 font-bold text-sm w-5 text-center">{rank + 1}</span>;
+    if (rank === 0) return <Trophy className="w-5 h-5 text-quest-gold" />;
+    if (rank === 1) return <Medal className="w-5 h-5 text-parchment-dim" />;
+    if (rank === 2) return <Medal className="w-5 h-5 text-realm-coral/80" />;
+    return <span className="text-parchment-dim/50 font-bold text-sm w-5 text-center font-ledger">{rank + 1}</span>;
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e2d3d] to-[#0f172a] pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-twilight-deep via-twilight to-twilight-deep pb-8">
       <div className="px-4 pt-6 pb-4">
         <div className="max-w-lg mx-auto flex items-center gap-3 mb-6">
           <button onClick={onBack}
             className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
-            <ArrowLeft className="w-5 h-5 text-white/60" />
+            <ArrowLeft className="w-5 h-5 text-parchment-dim" />
           </button>
           <div>
-            <p className="text-white/40 text-xs font-semibold uppercase tracking-wide">Rankings</p>
-            <h1 className="text-white text-xl font-bold">Leaderboard</h1>
+            <p className="text-parchment-dim/60 text-xs font-semibold uppercase tracking-wide">Rankings</p>
+            <h1 className="text-parchment text-xl font-display font-bold">Hall of Heroes</h1>
           </div>
         </div>
       </div>
@@ -69,26 +69,26 @@ export function LeaderboardPage({ onBack }: Props) {
               ))}
             </div>
           ) : entries.length === 0 ? (
-            <div className="text-center py-16 text-white/30">No rankings yet</div>
+            <div className="text-center py-16 text-parchment-dim/50">No rankings yet</div>
           ) : (
             <div className="space-y-2">
               {entries.map((e, rank) => (
                 <div key={e.id}
                   className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl border transition-all ${
-                    rank === 0 ? 'bg-yellow-500/10 border-yellow-500/20' :
-                    rank === 1 ? 'bg-slate-500/10 border-slate-500/20' :
-                    rank === 2 ? 'bg-amber-800/10 border-amber-800/20' :
+                    rank === 0 ? 'bg-quest-gold/10 border-quest-gold/25' :
+                    rank === 1 ? 'bg-white/8 border-white/15' :
+                    rank === 2 ? 'bg-realm-coral/10 border-realm-coral/20' :
                     'bg-white/5 border-white/8'
                   }`}>
                   <div className="w-6 flex items-center justify-center shrink-0">{medal(rank)}</div>
                   <span className="text-2xl shrink-0">{e.avatar}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white font-bold truncate">{e.name}</p>
-                    <p className="text-white/40 text-xs">Level {e.level}</p>
+                    <p className="text-parchment font-bold truncate font-display">{e.name}</p>
+                    <p className="text-parchment-dim/60 text-xs">Level {e.level}</p>
                   </div>
-                  <div className="flex items-center gap-1 text-amber-400">
+                  <div className="flex items-center gap-1 text-quest-gold">
                     <Star className="w-4 h-4" />
-                    <span className="font-bold text-sm">{e.xp.toLocaleString()}</span>
+                    <span className="font-bold text-sm font-ledger">{e.xp.toLocaleString()}</span>
                   </div>
                 </div>
               ))}

@@ -64,26 +64,26 @@ export function NotificationPrompt() {
 
   return (
     <div className="fixed top-4 left-4 right-4 z-50 animate-fadeIn">
-      <div className="bg-[#1e2d3d] border border-white/15 rounded-2xl p-4 shadow-2xl max-w-sm mx-auto">
+      <div className="bg-twilight-surface border border-quest-gold/20 rounded-2xl p-4 shadow-2xl max-w-sm mx-auto">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-sky-400/15 flex items-center justify-center shrink-0">
-            <Bell className="w-5 h-5 text-sky-400" />
+          <div className="w-10 h-10 rounded-xl bg-realm-emerald/15 flex items-center justify-center shrink-0">
+            <Bell className="w-5 h-5 text-realm-emerald" />
           </div>
           <div className="flex-1">
-            <p className="text-white font-bold text-sm">Weekly Test Reminders</p>
-            <p className="text-white/50 text-xs mt-1">Get notified when it's time for your child's weekly test</p>
+            <p className="text-parchment font-bold font-display text-sm">Weekly Quest Reminders</p>
+            <p className="text-parchment-dim text-xs mt-1">Get notified when it's time for your child's weekly quest</p>
           </div>
-          <button onClick={dismiss} className="text-white/30 hover:text-white/60 transition-colors">
+          <button onClick={dismiss} className="text-parchment-dim/60 hover:text-parchment-dim transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
         <div className="flex gap-2 mt-3">
           <button onClick={dismiss}
-            className="flex-1 py-2 bg-white/5 text-white/50 rounded-xl text-sm font-medium hover:bg-white/10 transition-all">
+            className="flex-1 py-2 bg-white/5 text-parchment-dim rounded-xl text-sm font-medium hover:bg-white/10 transition-all">
             Not now
           </button>
           <button onClick={enable}
-            className="flex-1 py-2 bg-sky-500 text-white rounded-xl text-sm font-bold hover:bg-sky-400 transition-all">
+            className="flex-1 py-2 bg-realm-emerald text-twilight-deep rounded-xl text-sm font-bold font-display hover:shadow-glow-emerald transition-all">
             Enable
           </button>
         </div>

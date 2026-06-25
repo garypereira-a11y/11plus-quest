@@ -104,7 +104,7 @@ export function ParentDashboard({ onSelectChild, onAddChild }: Props) {
     const dash = (pct / 100) * circ;
     return (
       <svg width="72" height="72" className="rotate-[-90deg]">
-        <circle cx="36" cy="36" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="5" />
+        <circle cx="36" cy="36" r={r} fill="none" stroke="rgba(244,201,93,0.12)" strokeWidth="5" />
         <circle cx="36" cy="36" r={r} fill="none" stroke={colour} strokeWidth="5"
           strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" />
       </svg>
@@ -112,18 +112,18 @@ export function ParentDashboard({ onSelectChild, onAddChild }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e2d3d] to-[#0f172a]">
+    <div className="min-h-screen bg-gradient-to-br from-twilight-deep via-twilight to-twilight-deep">
       {/* Header */}
       <div className="px-4 pt-8 pb-4">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <div>
-            <p className="text-white/40 text-xs font-semibold uppercase tracking-widest">Parent Dashboard</p>
-            <h1 className="text-white text-2xl font-bold mt-0.5">
+            <p className="text-quest-gold/70 text-xs font-semibold uppercase tracking-widest">Your Realm</p>
+            <h1 className="text-parchment text-2xl font-display font-bold mt-0.5">
               {profile?.name ? `Hi, ${profile.name.split(' ')[0]}` : 'Parent View'}
             </h1>
           </div>
           <button onClick={signOut}
-            className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white/50 hover:text-white/80 rounded-xl text-sm font-medium transition-all">
+            className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-parchment-dim hover:text-parchment rounded-xl text-sm font-medium transition-all">
             <LogOut className="w-4 h-4" /> Sign out
           </button>
         </div>
@@ -135,19 +135,19 @@ export function ParentDashboard({ onSelectChild, onAddChild }: Props) {
           {loading ? (
             <div className="space-y-4">
               {[1, 2].map(i => (
-                <div key={i} className="bg-white/5 rounded-3xl h-40 animate-pulse" />
+                <div key={i} className="bg-white/5 rounded-scroll h-40 animate-pulse" />
               ))}
             </div>
           ) : summaries.length === 0 ? (
             <div className="text-center py-16">
-              <div className="text-6xl mb-4">👨‍👧</div>
-              <h2 className="text-white text-xl font-bold mb-2">No children yet</h2>
-              <p className="text-white/40 text-sm mb-6">Add your first child to get started</p>
+              <div className="text-6xl mb-4">🏰</div>
+              <h2 className="text-parchment text-xl font-display font-bold mb-2">No adventurers yet</h2>
+              <p className="text-parchment-dim text-sm mb-6">Add your first child to begin their quest</p>
             </div>
           ) : (
             summaries.map(({ child, readiness, readinessLabel, readinessColour, streak, weeklyScore, weakestSkill, daysUntil }) => (
               <button key={child.id} onClick={() => onSelectChild(child.id)}
-                className="w-full bg-[#1e2d3d] hover:bg-[#243447] border border-white/10 hover:border-white/20 rounded-3xl p-5 text-left transition-all active:scale-[0.98] group">
+                className="w-full bg-twilight-surface hover:bg-twilight-raised border border-quest-gold/15 hover:border-quest-gold/30 rounded-scroll p-5 text-left transition-all active:scale-[0.98] group">
 
                 {/* Top row */}
                 <div className="flex items-start gap-4">
@@ -162,16 +162,16 @@ export function ParentDashboard({ onSelectChild, onAddChild }: Props) {
                   {/* Name / school / exam */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h2 className="text-white font-bold text-lg leading-tight">{child.first_name}</h2>
-                      <ChevronRight className="w-5 h-5 text-white/20 group-hover:text-white/40 transition-colors" />
+                      <h2 className="text-parchment font-display font-bold text-lg leading-tight">{child.first_name}</h2>
+                      <ChevronRight className="w-5 h-5 text-white/20 group-hover:text-quest-gold/50 transition-colors" />
                     </div>
-                    <p className="text-white/40 text-xs mt-0.5 truncate">{child.target_school ?? child.target_exam_type}</p>
+                    <p className="text-parchment-dim/70 text-xs mt-0.5 truncate">{child.target_school ?? child.target_exam_type}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <span className="px-2 py-0.5 rounded-full text-xs font-bold"
                         style={{ background: readinessColour + '22', color: readinessColour }}>
                         {readiness}% · {readinessLabel}
                       </span>
-                      <span className="text-white/30 text-xs">{child.year_group}</span>
+                      <span className="text-parchment-dim/50 text-xs">{child.year_group}</span>
                     </div>
                   </div>
                 </div>
@@ -179,47 +179,47 @@ export function ParentDashboard({ onSelectChild, onAddChild }: Props) {
                 {/* Stats row */}
                 <div className="grid grid-cols-4 gap-2 mt-4 pt-4 border-t border-white/5">
                   <div className="text-center">
-                    <div className="flex items-center justify-center gap-1 text-amber-400">
+                    <div className="flex items-center justify-center gap-1 text-realm-coral">
                       <Flame className="w-3.5 h-3.5" />
-                      <span className="font-bold text-sm">{streak}</span>
+                      <span className="font-bold text-sm font-ledger">{streak}</span>
                     </div>
-                    <p className="text-white/30 text-[10px] mt-0.5">Streak</p>
+                    <p className="text-parchment-dim/50 text-[10px] mt-0.5">Streak</p>
                   </div>
                   <div className="text-center">
-                    <div className="flex items-center justify-center gap-1 text-yellow-400">
+                    <div className="flex items-center justify-center gap-1 text-quest-gold">
                       <Star className="w-3.5 h-3.5" />
-                      <span className="font-bold text-sm">{child.xp_points}</span>
+                      <span className="font-bold text-sm font-ledger">{child.xp_points}</span>
                     </div>
-                    <p className="text-white/30 text-[10px] mt-0.5">XP</p>
+                    <p className="text-parchment-dim/50 text-[10px] mt-0.5">XP</p>
                   </div>
                   <div className="text-center">
-                    <div className="flex items-center justify-center gap-1 text-emerald-400">
+                    <div className="flex items-center justify-center gap-1 text-realm-emerald">
                       <Trophy className="w-3.5 h-3.5" />
-                      <span className="font-bold text-sm">{weeklyScore !== null ? `${weeklyScore}%` : '—'}</span>
+                      <span className="font-bold text-sm font-ledger">{weeklyScore !== null ? `${weeklyScore}%` : '—'}</span>
                     </div>
-                    <p className="text-white/30 text-[10px] mt-0.5">Weekly</p>
+                    <p className="text-parchment-dim/50 text-[10px] mt-0.5">Weekly</p>
                   </div>
                   <div className="text-center">
-                    <div className="flex items-center justify-center gap-1 text-sky-400">
+                    <div className="flex items-center justify-center gap-1 text-parchment-dim">
                       <Clock className="w-3.5 h-3.5" />
-                      <span className="font-bold text-sm">{daysUntil !== null ? daysUntil : '—'}</span>
+                      <span className="font-bold text-sm font-ledger">{daysUntil !== null ? daysUntil : '—'}</span>
                     </div>
-                    <p className="text-white/30 text-[10px] mt-0.5">Days left</p>
+                    <p className="text-parchment-dim/50 text-[10px] mt-0.5">Days left</p>
                   </div>
                 </div>
 
                 {/* Weakest skill */}
                 {weakestSkill && (
-                  <div className="mt-3 flex items-center gap-2 bg-red-900/20 border border-red-500/15 rounded-xl px-3 py-2">
-                    <TrendingUp className="w-3.5 h-3.5 text-red-400 shrink-0" />
-                    <p className="text-red-300 text-xs">Focus area: <span className="font-semibold">{weakestSkill}</span></p>
+                  <div className="mt-3 flex items-center gap-2 bg-realm-coral/10 border border-realm-coral/20 rounded-xl px-3 py-2">
+                    <TrendingUp className="w-3.5 h-3.5 text-realm-coral shrink-0" />
+                    <p className="text-realm-coral text-xs">Focus area: <span className="font-semibold">{weakestSkill}</span></p>
                   </div>
                 )}
 
                 {/* Exam countdown chip */}
                 {daysUntil !== null && (
                   <div className="mt-2 text-center">
-                    <span className="text-white/25 text-xs">{formatCountdown(daysUntil)}</span>
+                    <span className="text-parchment-dim/40 text-xs">{formatCountdown(daysUntil)}</span>
                   </div>
                 )}
               </button>
@@ -228,11 +228,11 @@ export function ParentDashboard({ onSelectChild, onAddChild }: Props) {
 
           {/* Add child button */}
           <button onClick={onAddChild}
-            className="w-full flex items-center justify-center gap-3 py-5 border-2 border-dashed border-white/15 hover:border-amber-400/40 rounded-3xl text-white/40 hover:text-amber-400 transition-all group">
+            className="w-full flex items-center justify-center gap-3 py-5 border-2 border-dashed border-quest-gold/20 hover:border-quest-gold/50 rounded-scroll text-parchment-dim/60 hover:text-quest-gold transition-all group">
             <div className="w-10 h-10 rounded-full border-2 border-current flex items-center justify-center group-hover:scale-110 transition-transform">
               <Plus className="w-5 h-5" />
             </div>
-            <span className="font-semibold">Add another child</span>
+            <span className="font-semibold font-display">Add another child</span>
           </button>
         </div>
       </div>
