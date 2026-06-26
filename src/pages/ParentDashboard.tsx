@@ -104,7 +104,7 @@ export function ParentDashboard({ onSelectChild, onAddChild }: Props) {
     const dash = (pct / 100) * circ;
     return (
       <svg width="72" height="72" className="rotate-[-90deg]">
-        <circle cx="36" cy="36" r={r} fill="none" stroke="rgba(244,201,93,0.12)" strokeWidth="5" />
+        <circle cx="36" cy="36" r={r} fill="none" stroke="rgba(217,164,99,0.12)" strokeWidth="5" />
         <circle cx="36" cy="36" r={r} fill="none" stroke={colour} strokeWidth="5"
           strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" />
       </svg>

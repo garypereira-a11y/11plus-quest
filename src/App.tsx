@@ -9,6 +9,7 @@ import { QuizPage }           from './pages/QuizPage';
 import { WeekChooserPage }    from './pages/WeekChooserPage';
 import { LeaderboardPage }    from './pages/LeaderboardPage';
 import { SelectAvatarPage }   from './pages/SelectAvatarPage';
+import { CharacterShopPage }  from './pages/CharacterShopPage';
 import { PrivacyPolicyPage }  from './pages/PrivacyPolicyPage';
 import { PWAInstallPrompt }   from './components/PWAInstallPrompt';
 import { NotificationPrompt } from './components/PushNotifications';
@@ -22,6 +23,7 @@ type Page =
   | { name: 'week-chooser'; childId: string }
   | { name: 'leaderboard'; childId: string }
   | { name: 'select-avatar' }
+  | { name: 'character-shop'; childId: string }
   | { name: 'privacy' };
 
 function AppInner() {
@@ -134,10 +136,20 @@ function AppInner() {
           onStartQuiz={(category) => setPage({ name: 'quiz', childId: page.childId, category })}
           onStartWeeklyTest={() => setPage({ name: 'week-chooser', childId: page.childId })}
           onViewLeaderboard={() => setPage({ name: 'leaderboard', childId: page.childId })}
+          onOpenShop={() => setPage({ name: 'character-shop', childId: page.childId })}
         />
         <PWAInstallPrompt />
         <NotificationPrompt />
       </>
+    );
+  }
+
+  if (page.name === 'character-shop') {
+    return (
+      <CharacterShopPage
+        childId={page.childId}
+        onBack={() => setPage({ name: 'child-dashboard', childId: page.childId })}
+      />
     );
   }
 

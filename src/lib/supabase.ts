@@ -188,6 +188,71 @@ export interface AiChallenge {
   completed_at: string | null;
 }
 
+// ── Coins & character shop ─────────────────────────────────────────────────────
+export type ShopSlot = 'hat' | 'outfit' | 'face' | 'background';
+
+export interface ShopItem {
+  id: string;
+  slot: ShopSlot;
+  name: string;
+  emoji: string;
+  cost: number;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  sort_order: number;
+}
+
+export interface ChildCoins {
+  child_id: string;
+  balance: number;
+  updated_at: string;
+}
+
+export interface CoinTransaction {
+  id: string;
+  child_id: string;
+  amount: number;
+  reason: string;
+  source_type: 'achievement' | 'streak' | 'weekly_test' | 'purchase' | 'manual';
+  source_id: string | null;
+  created_at: string;
+}
+
+export interface ChildInventoryItem {
+  id: string;
+  child_id: string;
+  shop_item_id: string;
+  acquired_at: string;
+  shop_item?: ShopItem;
+}
+
+export interface ChildEquipped {
+  child_id: string;
+  slot: ShopSlot;
+  shop_item_id: string;
+  equipped_at: string;
+  shop_item?: ShopItem;
+}
+
+// Slot render order (bottom to top) when layering accessories over the base avatar emoji.
+// Background sits behind everything; hat/face/outfit-accent sit in front, in this order.
+export const SHOP_SLOT_ORDER: ShopSlot[] = ['background', 'outfit', 'face', 'hat'];
+
+export const SHOP_SLOT_LABELS: Record<ShopSlot, string> = {
+  hat: 'Hats',
+  face: 'Face',
+  outfit: 'Outfits',
+  background: 'Backgrounds',
+};
+
+// Coin amounts awarded for each kind of accomplishment. Mirrors the XP_AWARDS
+// pattern below — keep both in sync when adjusting reward balance.
+export const COIN_AWARDS = {
+  achievement:        25,
+  weeklyTestComplete: 15,
+  weeklyTestPerfect:  40,
+  streakMilestone:    30,  // awarded every 7-day streak milestone
+} as const;
+
 // ── Zone / subject config (legacy, kept for existing components) ──────────────
 export const ZONES = [
   { id: 'math',             name: 'Maths',            emoji: '🏝️', color: 'from-blue-500 to-cyan-500',    description: 'Numbers, algebra & problem solving' },

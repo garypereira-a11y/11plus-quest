@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { supabase, Question, ChildRecord, XP_AWARDS, isCorrectOption, getCorrectOptionText } from '../lib/supabase';
-import { ArrowLeft, CircleCheck as CheckCircle, Circle as XCircle, ChevronRight, Trophy } from 'lucide-react';
+import { supabase, Question, ChildRecord, XP_AWARDS, COIN_AWARDS, isCorrectOption, getCorrectOptionText } from '../lib/supabase';
+import { ArrowLeft, CircleCheck as CheckCircle, Circle as XCircle, ChevronRight, Trophy, Check } from 'lucide-react';
 
 interface Props {
   childId?: string | null;
@@ -13,7 +13,7 @@ interface Props {
   onBack: () => void;
 }
 
-type Phase = 'loading' | 'question' | 'feedback' | 'results';
+type Phase = 'loading' | 'question' | 'selected' | 'feedback' | 'results';
 
 export function QuizPage({ childId, category, isWeeklyTest = false, questionIds, weeklyTestId, onComplete, onBack }: Props) {
   const { user } = useAuth();
@@ -24,6 +24,7 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
   const [phase, setPhase]             = useState<Phase>('loading');
   const [correctCount, setCorrectCount] = useState(0);
   const [answers, setAnswers]         = useState<{ question: Question; chosen: string; correct: boolean }[]>([]);
+  const [newAchievements, setNewAchievements] = useState<string[]>([]);
   const savedRef                      = useRef(false);
 
   const loadQuestions = useCallback(async () => {
@@ -81,12 +82,17 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
 
   const current = questions[idx];
 
-  const handleAnswer = (option: string) => {
-    if (selected !== null) return;
+  const handleSelect = (option: string) => {
+    if (phase !== 'question' && phase !== 'selected') return;
     setSelected(option);
-    const isCorrect = isCorrectOption(current, option);
+    setPhase('selected');
+  };
+
+  const handleSubmit = () => {
+    if (selected === null || phase !== 'selected') return;
+    const isCorrect = isCorrectOption(current, selected);
     if (isCorrect) setCorrectCount(c => c + 1);
-    setAnswers(prev => [...prev, { question: current, chosen: option, correct: isCorrect }]);
+    setAnswers(prev => [...prev, { question: current, chosen: selected, correct: isCorrect }]);
     setPhase('feedback');
   };
 
@@ -105,14 +111,15 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
     if (phase !== 'results' || savedRef.current || !user) return;
     savedRef.current = true;
 
+    (async () => {
     const total = questions.length;
     const score = correctCount;
     const isPerfect = score === total && total > 0;
 
     const xpGained = XP_AWARDS.quizCompletion + (isPerfect ? XP_AWARDS.perfectScore : 0);
 
-    // Save quiz attempt
-    supabase.from('quiz_attempts').insert({
+    // Save quiz attempt — awaited because achievement checks below count this row
+    await supabase.from('quiz_attempts').insert({
       user_id: user.id,
       child_id: childId ?? null,
       category: category ?? 'mixed',
@@ -130,6 +137,28 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
         score: pct,
         completed_at: new Date().toISOString(),
       }).eq('id', weeklyTestId);
+    }
+
+    // Award coins for completing a weekly quest, with a bonus for a perfect score
+    if (childId && isWeeklyTest) {
+      const coinAmount = COIN_AWARDS.weeklyTestComplete + (isPerfect ? COIN_AWARDS.weeklyTestPerfect : 0);
+      const reason = isPerfect ? 'Perfect weekly quest score!' : 'Weekly quest completed';
+      supabase.rpc('award_coins', {
+        p_child_id: childId,
+        p_amount: coinAmount,
+        p_reason: reason,
+        p_source_type: 'weekly_test',
+        p_source_id: weeklyTestId ?? null,
+      });
+    }
+
+    // Check for newly-earned achievements (coins for these are awarded server-side
+    // inside the function, alongside the badge insert, so they stay in sync).
+    if (childId) {
+      supabase.rpc('check_and_award_achievements', { p_child_id: childId }).then(({ data }) => {
+        const earned = (data as { newly_earned?: string[] } | null)?.newly_earned;
+        if (earned && earned.length > 0) setNewAchievements(earned);
+      });
     }
 
     // Update child XP
@@ -159,6 +188,7 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
     }
 
     onComplete(score, total);
+    })();
   }, [phase, correctCount, questions.length, user, childId, child, category, isWeeklyTest, weeklyTestId, answers, onComplete]);
 
   if (phase === 'loading') {
@@ -182,6 +212,17 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
           <p className="text-parchment-dim mb-6">You scored</p>
           <div className={`text-7xl font-display font-black ${colour} mb-2`}>{pct}%</div>
           <p className="text-parchment-dim/60 mb-8 font-ledger">{correctCount} / {questions.length} correct</p>
+
+          {newAchievements.length > 0 && (
+            <div className="bg-quest-gold/10 border-2 border-quest-gold/30 rounded-scroll px-5 py-4 mb-6 animate-chestPop">
+              <p className="text-quest-gold font-display font-bold text-sm mb-1">🎉 New Achievement{newAchievements.length > 1 ? 's' : ''}!</p>
+              {newAchievements.map(name => (
+                <p key={name} className="text-parchment text-sm font-semibold">{name}</p>
+              ))}
+              <p className="text-parchment-dim/60 text-xs mt-1">+25 coins each — spend them at the Outfitter!</p>
+            </div>
+          )}
+
           <div className="space-y-3">
             <button onClick={loadQuestions}
               className="w-full py-4 bg-gradient-to-r from-quest-goldDim to-quest-gold text-twilight-deep rounded-2xl font-bold font-display text-lg hover:shadow-glow transition-all active:scale-95 shadow-lg">
@@ -242,18 +283,21 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
               const isSelected = selected === option;
               const isCorrect  = option === getCorrectOptionText(current);
               let style = 'border-white/10 bg-white/5 text-parchment hover:border-white/25 hover:bg-white/8';
-              if (phase === 'feedback') {
+              if (phase === 'selected' && isSelected) {
+                style = 'border-quest-gold bg-quest-gold/15 text-parchment';
+              } else if (phase === 'feedback') {
                 if (isCorrect)       style = 'border-realm-emerald bg-realm-emerald/15 text-parchment';
                 else if (isSelected) style = 'border-realm-coral bg-realm-coral/15 text-parchment';
                 else                 style = 'border-white/5 bg-white/3 text-parchment-dim/40';
               }
 
               return (
-                <button key={i} onClick={() => handleAnswer(option)} disabled={phase === 'feedback'}
+                <button key={i} onClick={() => handleSelect(option)} disabled={phase === 'feedback'}
                   className={`w-full flex items-center gap-3 px-4 py-4 rounded-2xl border-2 transition-all text-left ${style}`}>
                   <span className="w-8 h-8 rounded-full border-2 border-current flex items-center justify-center text-sm font-bold shrink-0">
                     {phase === 'feedback' && isCorrect  ? <CheckCircle className="w-5 h-5 text-realm-emerald" /> :
                      phase === 'feedback' && isSelected ? <XCircle className="w-5 h-5 text-realm-coral" /> :
+                     phase === 'selected' && isSelected ? <Check className="w-5 h-5 text-quest-gold" /> :
                      String.fromCharCode(65 + i)}
                   </span>
                   <span className="font-semibold">{option}</span>
@@ -261,6 +305,15 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
               );
             })}
           </div>
+
+          {/* Submit button — confirms the tentative selection before revealing feedback */}
+          {phase === 'selected' && (
+            <button onClick={handleSubmit}
+              className="w-full mt-4 flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-quest-goldDim to-quest-gold text-twilight-deep rounded-2xl font-bold font-display text-lg hover:shadow-glow transition-all active:scale-95 shadow-lg animate-fadeIn">
+              <Check className="w-5 h-5" />
+              Submit Answer
+            </button>
+          )}
 
           {/* Explanation + Next */}
           {phase === 'feedback' && (

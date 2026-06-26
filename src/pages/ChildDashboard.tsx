@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase, ChildRecord, SkillMastery, Achievement, QuizAttempt, XP_AWARDS } from '../lib/supabase';
+import { supabase, ChildRecord, SkillMastery, Achievement, QuizAttempt, XP_AWARDS, ChildEquipped } from '../lib/supabase';
 import { calculateReadiness, daysUntilExam, formatCountdown } from '../lib/readiness';
 import { getExamProfile } from '../lib/examProfiles';
-import { ArrowLeft, Flame, Star, Trophy, Zap, Target, BookOpen, ChevronRight, Calendar, Award, TrendingUp, Play, ChartBar as BarChart2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { AvatarDisplay } from '../components/AvatarDisplay';
+import { ArrowLeft, Flame, Star, Trophy, Zap, Target, BookOpen, ChevronRight, Calendar, Award, TrendingUp, Play, ChartBar as BarChart2, LogOut, Coins, ShoppingBag } from 'lucide-react';
 
 interface Props {
   childId: string;
@@ -10,31 +12,39 @@ interface Props {
   onStartQuiz: (category: string) => void;
   onStartWeeklyTest: () => void;
   onViewLeaderboard: () => void;
+  onOpenShop: () => void;
 }
 
-export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest, onViewLeaderboard }: Props) {
+export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest, onViewLeaderboard, onOpenShop }: Props) {
+  const { signOut } = useAuth();
   const [child, setChild]             = useState<ChildRecord | null>(null);
   const [masteries, setMasteries]     = useState<SkillMastery[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [attempts, setAttempts]       = useState<Pick<QuizAttempt, 'correct_answers' | 'total_questions' | 'is_weekly_test' | 'completed_at'>[]>([]);
   const [weeklyCount, setWeeklyCount] = useState(0);
+  const [equipped, setEquipped]       = useState<ChildEquipped[]>([]);
+  const [coinBalance, setCoinBalance] = useState(0);
   const [loading, setLoading]         = useState(true);
   const [awardingLogin, setAwardingLogin] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [childRes, masteryRes, achieveRes, attemptsRes, weeklyRes] = await Promise.all([
+    const [childRes, masteryRes, achieveRes, attemptsRes, weeklyRes, equippedRes, coinsRes] = await Promise.all([
       supabase.from('children').select('*').eq('id', childId).single(),
       supabase.from('skill_mastery').select('*').eq('child_id', childId).order('mastery_score', { ascending: true }),
       supabase.from('achievements').select('*').eq('child_id', childId).order('earned_date', { ascending: false }).limit(10),
       supabase.from('quiz_attempts').select('correct_answers,total_questions,is_weekly_test,completed_at').eq('child_id', childId).order('completed_at', { ascending: false }).limit(60),
       supabase.from('ai_weekly_tests').select('id', { count: 'exact', head: true }).eq('child_id', childId),
+      supabase.from('child_equipped').select('*, shop_item:shop_items(*)').eq('child_id', childId),
+      supabase.from('child_coins').select('balance').eq('child_id', childId).maybeSingle(),
     ]);
     setChild(childRes.data as ChildRecord | null);
     setMasteries((masteryRes.data ?? []) as SkillMastery[]);
     setAchievements((achieveRes.data ?? []) as Achievement[]);
     setAttempts((attemptsRes.data ?? []) as typeof attempts);
     setWeeklyCount(weeklyRes.count ?? 0);
+    setEquipped((equippedRes.data ?? []) as ChildEquipped[]);
+    setCoinBalance(coinsRes.data?.balance ?? 0);
     setLoading(false);
   }, [childId]);
 
@@ -80,6 +90,21 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
     return s;
   })();
 
+  // Claim a streak milestone bonus the first time the streak reaches each threshold.
+  // The server-side function is idempotent (returns 'already_claimed' on repeat calls),
+  // so it's safe to call this on every render where the streak qualifies.
+  useEffect(() => {
+    if (!childId || loading) return;
+    const milestone = [30, 14, 7].find(m => streak >= m);
+    if (milestone) {
+      supabase.rpc('claim_streak_milestone', { p_child_id: childId, p_milestone: milestone })
+        .then(({ data }) => {
+          const result = data as { success?: boolean } | null;
+          if (result?.success) setCoinBalance(b => b + 30);
+        });
+    }
+  }, [childId, loading, streak]);
+
   const readinessGradient =
     readinessResult.level === 'exam-ready' ? 'from-realm-emerald to-teal-500' :
     readinessResult.level === 'on-track'   ? 'from-quest-goldDim to-quest-gold' :
@@ -93,7 +118,7 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
       {/* Header */}
       <div className="px-4 pt-6 pb-2">
         <div className="max-w-lg mx-auto">
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-2 mb-6 flex-wrap">
             {onBack && (
               <button onClick={onBack}
                 className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
@@ -101,21 +126,41 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
               </button>
             )}
             <div className="flex-1" />
+            <button onClick={onOpenShop}
+              className="flex items-center gap-1.5 bg-quest-gold/15 border border-quest-gold/30 rounded-full px-3 py-1.5 hover:bg-quest-gold/25 transition-all">
+              <Coins className="w-4 h-4 text-quest-gold" />
+              <span className="text-quest-gold font-bold text-sm font-ledger">{coinBalance}</span>
+            </button>
             <button onClick={onViewLeaderboard}
               className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all">
               <Trophy className="w-5 h-5 text-quest-gold/80" />
             </button>
+            <button onClick={() => signOut()} title="Sign out"
+              className="w-10 h-10 rounded-xl bg-white/5 hover:bg-realm-coral/15 flex items-center justify-center transition-all group">
+              <LogOut className="w-5 h-5 text-parchment-dim group-hover:text-realm-coral transition-colors" />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2 bg-realm-coral/15 rounded-full px-3 py-1.5">
               <Flame className="w-4 h-4 text-realm-coral" />
               <span className="text-realm-coral font-bold text-sm font-ledger">{streak} day streak</span>
             </div>
+            <button onClick={onOpenShop}
+              className="flex items-center gap-1.5 text-parchment-dim/60 hover:text-quest-gold text-xs font-semibold transition-colors">
+              <ShoppingBag className="w-3.5 h-3.5" /> Outfitter
+            </button>
           </div>
+          <p className="text-parchment-dim/40 text-[11px] mb-4 -mt-1">
+            {streak === 0 ? 'Log in daily to start a streak and unlock rewards!' :
+             streak < 3   ? 'Keep it going \u2014 a few more days to your first streak milestone!' :
+             streak < 7   ? `${7 - streak} more day${7 - streak === 1 ? '' : 's'} until your next streak reward!` :
+                            'Amazing streak! Keep questing to keep it alive.'}
+          </p>
 
           {/* Child identity */}
           <div className="flex items-center gap-4 mb-2">
-            <div className="w-16 h-16 rounded-2xl bg-twilight-raised border-2 border-quest-gold/30 flex items-center justify-center text-4xl shadow-glow">
-              {child.avatar}
-            </div>
+            <AvatarDisplay baseAvatar={child.avatar} equipped={equipped} size="md" />
             <div>
               <h1 className="text-parchment text-2xl font-display font-bold">{child.first_name}</h1>
               <p className="text-parchment-dim text-sm">{child.target_school ?? child.target_exam_type} · {child.year_group}</p>
@@ -132,6 +177,9 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
               <div className="h-full bg-gradient-to-r from-quest-goldDim to-quest-gold rounded-full transition-all"
                 style={{ width: `${xpInLevel}%` }} />
             </div>
+            <p className="text-parchment-dim/40 text-[11px] mt-1">
+              {100 - xpInLevel} XP to Level {child.level + 1} — finish a quiz to get closer!
+            </p>
           </div>
         </div>
       </div>
@@ -149,6 +197,19 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
                   <span className="text-white text-5xl font-display font-black">{readinessResult.percentage}%</span>
                 </div>
                 <p className="text-white/80 font-bold mt-1">{readinessResult.label}</p>
+                <p className="text-white/60 text-xs mt-1">
+                  {(() => {
+                    const c = readinessResult.components;
+                    const weakest = Object.entries({
+                      'Skill Mastery': c.skillMastery, 'Weekly Tests': c.weeklyTests,
+                      'Consistency': c.consistency, 'Completion Rate': c.completionRate,
+                    }).sort((a, b) => a[1] - b[1])[0];
+                    if (readinessResult.percentage >= 70) return 'You\u2019re in great shape \u2014 keep up the momentum!';
+                    if (weakest[0] === 'Consistency') return 'Practice a little each day to boost your consistency.';
+                    if (weakest[0] === 'Weekly Tests') return 'Complete more weekly quests to raise this score.';
+                    return `Focus on ${weakest[0].toLowerCase()} to climb faster.`;
+                  })()}
+                </p>
                 {daysUntil !== null && (
                   <div className="flex items-center gap-1.5 mt-2">
                     <Calendar className="w-3.5 h-3.5 text-white/60" />

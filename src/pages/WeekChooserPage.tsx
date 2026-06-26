@@ -149,8 +149,8 @@ export function WeekChooserPage({ childId, onStartWeek, onBack }: Props) {
             className="absolute inset-0 w-full h-full pointer-events-none"
             preserveAspectRatio="xMidYMin meet"
           >
-            <path d={pathD} fill="none" stroke="rgba(244,201,93,0.18)" strokeWidth="6" strokeLinecap="round" />
-            <path d={pathD} fill="none" stroke="rgba(244,201,93,0.35)" strokeWidth="2" strokeDasharray="2 10" strokeLinecap="round" />
+            <path d={pathD} fill="none" stroke="rgba(217,164,99,0.18)" strokeWidth="6" strokeLinecap="round" />
+            <path d={pathD} fill="none" stroke="rgba(217,164,99,0.35)" strokeWidth="2" strokeDasharray="2 10" strokeLinecap="round" />
           </svg>
 
           {/* Waypoint nodes */}

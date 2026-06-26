@@ -91,9 +91,9 @@ export function calculateReadiness(
     : 'needs-improvement';
 
   const colour =
-    level === 'exam-ready'        ? '#5FBFA3'  // realm-emerald
-    : level === 'on-track'        ? '#F4C95D'  // quest-gold
-    : '#E0654B';                               // realm-coral
+    level === 'exam-ready'        ? '#4FB8A3'  // realm-emerald (sea-foam teal)
+    : level === 'on-track'        ? '#D9A463'  // quest-gold (sand brown)
+    : '#E0764B';                               // realm-coral (terracotta)
 
   const label =
     level === 'exam-ready'        ? 'Exam Ready'
