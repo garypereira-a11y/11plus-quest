@@ -63,20 +63,9 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
       });
   }, [child, childId, awardingLogin]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-twilight-deep via-twilight to-twilight-deep flex items-center justify-center">
-        <div className="text-parchment-dim text-lg font-display animate-pulse">Charting your quest...</div>
-      </div>
-    );
-  }
-
-  if (!child) return null;
-
-  const readinessResult = calculateReadiness(masteries, attempts, weeklyCount);
-  const profile = getExamProfile(child.target_exam_type);
-  const daysUntil = daysUntilExam(child.exam_date);
-  const xpInLevel = child.xp_points % 100;
+  // Streak is computed here (not after the early returns below) so the streak-milestone
+  // effect that depends on it can also live here — every hook must run on every render,
+  // regardless of loading/child state, or React throws a "hooks order changed" error.
   const streak = (() => {
     const daySet = new Set<string>();
     for (const a of attempts) daySet.add(new Date(a.completed_at).toISOString().slice(0, 10));
@@ -105,6 +94,20 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
     }
   }, [childId, loading, streak]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-twilight-deep via-twilight to-twilight-deep flex items-center justify-center">
+        <div className="text-parchment-dim text-lg font-display animate-pulse">Charting your quest...</div>
+      </div>
+    );
+  }
+
+  if (!child) return null;
+
+  const readinessResult = calculateReadiness(masteries, attempts, weeklyCount);
+  const profile = getExamProfile(child.target_exam_type);
+  const daysUntil = daysUntilExam(child.exam_date);
+  const xpInLevel = child.xp_points % 100;
   const readinessGradient =
     readinessResult.level === 'exam-ready' ? 'from-realm-emerald to-teal-500' :
     readinessResult.level === 'on-track'   ? 'from-quest-goldDim to-quest-gold' :
