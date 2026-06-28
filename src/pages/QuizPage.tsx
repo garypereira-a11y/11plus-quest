@@ -15,9 +15,30 @@ interface Props {
 
 type Phase = 'loading' | 'question' | 'selected' | 'feedback' | 'results';
 
+// Pool of unused candidate questions, keyed by `${topic}|${difficulty}`.
+// Used to pick the next question adaptively, based on whether the previous
+// answer (in that same topic) was right or wrong.
+type Pool = Map<string, Question[]>;
+
+const poolKey = (topic: string, difficulty: number) => `${topic}|${difficulty}`;
+
+function takeFromPool(pool: Pool, topic: string, difficulty: number): Question | null {
+  // Try the exact tier first, then fall back to nearby tiers (closer first).
+  const tryOrder = [difficulty, difficulty - 1, difficulty + 1, difficulty - 2, difficulty + 2]
+    .filter(d => d >= 1 && d <= 3);
+
+  for (const d of tryOrder) {
+    const bucket = pool.get(poolKey(topic, d));
+    if (bucket && bucket.length > 0) {
+      return bucket.shift() ?? null; // mutates the bucket in place so it isn't reused
+    }
+  }
+  return null;
+}
+
 export function QuizPage({ childId, category, isWeeklyTest = false, questionIds, weeklyTestId, onComplete, onBack }: Props) {
   const { user } = useAuth();
-  const [questions, setQuestions]     = useState<Question[]>([]);
+  const [questions, setQuestions]     = useState<Question[]>([]); // the sequence actually shown so far
   const [child, setChild]             = useState<ChildRecord | null>(null);
   const [idx, setIdx]                 = useState(0);
   const [selected, setSelected]       = useState<string | null>(null);
@@ -25,7 +46,30 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
   const [correctCount, setCorrectCount] = useState(0);
   const [answers, setAnswers]         = useState<{ question: Question; chosen: string; correct: boolean }[]>([]);
   const [newAchievements, setNewAchievements] = useState<string[]>([]);
+  const [totalPlanned, setTotalPlanned] = useState(10); // how many questions this quiz has, fixed at load time
   const savedRef                      = useRef(false);
+
+  // Per-topic current difficulty tier (1-3). Read/written synchronously when
+  // picking the next question — doesn't need to trigger a re-render on its own,
+  // so it's a ref rather than state.
+  const difficultyByTopic = useRef<Map<string, number>>(new Map());
+
+  // Difficulty-tiered pool of unused candidate questions for every topic in this test.
+  const poolRef = useRef<Pool>(new Map());
+
+  // Topic planned for each question-slot, in original order, e.g.
+  // ['Fractions','Fractions','Fractions','Grammar','Grammar', ...]
+  // Tells us which topic's pool to draw from at each step, while the
+  // *difficulty* of the actual question drawn adapts based on the live score.
+  const plannedTopicOrderRef = useRef<string[]>([]);
+
+  // The original, non-adaptive sequence (from generate_child_test, or the
+  // shuffled fallback query). Used as a last-resort fallback for any slot
+  // where the pool has run out of fresh questions at every difficulty tier —
+  // far better to reuse a planned question than to crash on an undefined slot.
+  const plannedSequenceRef = useRef<Question[]>([]);
+
+  const topicOf = (q: Question) => q.topic ?? q.category;
 
   const loadQuestions = useCallback(async () => {
     setPhase('loading');
@@ -37,13 +81,13 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
       setChild(child);
     }
 
-    let q: Question[] = [];
+    let initialSequence: Question[] = [];
 
     if (questionIds && questionIds.length > 0) {
       const { data } = await supabase.from('questions').select('*').in('id', questionIds);
       const byId = new Map(((data ?? []) as Question[]).map(question => [question.id, question]));
       // .in() does not preserve order — restore the adaptive engine's weak→medium→strong sequence.
-      q = questionIds.map(id => byId.get(id)).filter((question): question is Question => !!question);
+      initialSequence = questionIds.map(id => byId.get(id)).filter((question): question is Question => !!question);
     } else {
       let query = supabase.from('questions').select('*');
 
@@ -59,23 +103,72 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
       const limit = isWeeklyTest ? 30 : 10;
       const { data } = await query.limit(limit * 3); // fetch extra, then shuffle
       const pool = (data ?? []) as Question[];
-      // Shuffle and take
-      q = pool.sort(() => Math.random() - 0.5).slice(0, limit);
+      initialSequence = pool.sort(() => Math.random() - 0.5).slice(0, limit);
     }
 
-    if (q.length === 0) {
+    if (initialSequence.length === 0) {
       // Fallback: any questions in category
       const { data } = await supabase.from('questions').select('*')
         .eq('category', category ?? 'math').limit(10);
-      q = (data ?? []) as Question[];
+      initialSequence = (data ?? []) as Question[];
     }
 
-    setQuestions(q);
+    const plannedTotal = initialSequence.length;
+
+    // ── Fetch a difficulty-tiered pool for every topic appearing in this test ──
+    // One extra query upfront lets us swap the *next* question in real time
+    // based on whether the previous answer (in that topic) was right or wrong,
+    // with no network call needed mid-quiz.
+    const topicsInPlay = Array.from(new Set(initialSequence.map(topicOf)));
+    const usedIds = new Set(initialSequence.map(q => q.id));
+
+    if (topicsInPlay.length > 0) {
+      let poolQuery = supabase.from('questions').select('*').in('topic', topicsInPlay);
+      if (child) {
+        poolQuery = poolQuery
+          .contains('year_groups', [child.year_group])
+          .contains('exam_types', [child.target_exam_type]);
+      }
+      const { data: poolData } = await poolQuery.limit(500);
+      const candidates = ((poolData ?? []) as Question[]).filter(q => !usedIds.has(q.id));
+
+      const newPool: Pool = new Map();
+      for (const q of candidates) {
+        const key = poolKey(topicOf(q), q.difficulty);
+        const bucket = newPool.get(key) ?? [];
+        bucket.push(q);
+        newPool.set(key, bucket);
+      }
+      // Shuffle each bucket so repeated tiers don't always serve the same question first.
+      for (const bucket of newPool.values()) {
+        bucket.sort(() => Math.random() - 0.5);
+      }
+      poolRef.current = newPool;
+    } else {
+      poolRef.current = new Map();
+    }
+
+    // Seed each topic's starting difficulty from the first question of that
+    // topic in the planned sequence (preserves generate_child_test's original intent).
+    const diffMap = new Map<string, number>();
+    for (const q of initialSequence) {
+      const t = topicOf(q);
+      if (!diffMap.has(t)) diffMap.set(t, q.difficulty || 2);
+    }
+    difficultyByTopic.current = diffMap;
+
+    // Set these refs BEFORE setPhase, so they're guaranteed ready the moment
+    // the user can interact with the quiz.
+    plannedTopicOrderRef.current = initialSequence.map(topicOf);
+    plannedSequenceRef.current = initialSequence;
+
+    setQuestions([initialSequence[0]].filter(Boolean) as Question[]);
+    setTotalPlanned(plannedTotal);
     setIdx(0);
     setCorrectCount(0);
     setAnswers([]);
     savedRef.current = false;
-    setPhase(q.length > 0 ? 'question' : 'results');
+    setPhase(initialSequence.length > 0 ? 'question' : 'results');
   }, [childId, category, isWeeklyTest, questionIds]);
 
   useEffect(() => { loadQuestions(); }, [loadQuestions]);
@@ -93,17 +186,59 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
     const isCorrect = isCorrectOption(current, selected);
     if (isCorrect) setCorrectCount(c => c + 1);
     setAnswers(prev => [...prev, { question: current, chosen: selected, correct: isCorrect }]);
+
+    // ── Step difficulty for this question's topic ──
+    // Wrong answer: drop one tier (floor 1) to rebuild confidence.
+    // Correct answer: climb one tier (ceiling 3).
+    const topic = topicOf(current);
+    const prevDifficulty = difficultyByTopic.current.get(topic) ?? current.difficulty ?? 2;
+    const nextDifficulty = isCorrect
+      ? Math.min(3, prevDifficulty + 1)
+      : Math.max(1, prevDifficulty - 1);
+    difficultyByTopic.current.set(topic, nextDifficulty);
+
     setPhase('feedback');
   };
 
   const handleNext = () => {
     setSelected(null);
-    if (idx + 1 >= questions.length) {
+    const nextSlot = idx + 1;
+
+    if (nextSlot >= totalPlanned) {
       setPhase('results');
-    } else {
-      setIdx(i => i + 1);
-      setPhase('question');
+      return;
     }
+
+    // Which topic was originally planned for this slot?
+    const nextTopic = plannedTopicOrderRef.current[nextSlot] ?? topicOf(current);
+    const targetDifficulty = difficultyByTopic.current.get(nextTopic) ?? 2;
+
+    const picked = takeFromPool(poolRef.current, nextTopic, targetDifficulty);
+
+    // Fallback chain if the pool has nothing left for this topic at any tier:
+    // use whatever was originally planned for this exact slot. Should be rare
+    // given the size of the question bank, but a fallback to a known-good
+    // question is required here — leaving the slot empty would crash the
+    // question screen on `current.question_text` etc. being undefined.
+    const fallback = plannedSequenceRef.current[nextSlot] ?? plannedSequenceRef.current[0];
+    const nextQuestion = picked ?? fallback;
+
+    if (!nextQuestion) {
+      // Should be unreachable (plannedSequenceRef always has at least the
+      // questions the quiz started with), but guard anyway rather than ever
+      // render an undefined question.
+      setPhase('results');
+      return;
+    }
+
+    setQuestions(prev => {
+      const copy = [...prev];
+      copy[nextSlot] = nextQuestion;
+      return copy;
+    });
+
+    setIdx(nextSlot);
+    setPhase('question');
   };
 
   // Save results when reaching results phase
@@ -178,13 +313,29 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
         skillMap.set(skill, { correct: prev.correct + (a.correct ? 1 : 0), total: prev.total + 1 });
       }
       for (const [skill, { correct, total }] of skillMap.entries()) {
-        const newScore = (correct / total) * 100;
-        supabase.rpc('upsert_skill_mastery', {
+        const { error: masteryError } = await supabase.rpc('upsert_skill_mastery', {
           p_child_id: childId,
           p_skill_name: skill,
-          p_new_score: newScore,
+          p_correct: correct,
+          p_total: total,
         });
+        if (masteryError) {
+          console.error(`Failed to update mastery for skill "${skill}":`, masteryError.message);
+        }
       }
+    }
+
+    // Award a mystery chest for completing this quiz — the surprise-reward moment
+    // that makes finishing a quiz feel exciting beyond just the predictable XP/coin
+    // numbers. The dashboard (shown right after onComplete fires) checks for and
+    // displays any unopened chests, so the actual "opening" experience lives there,
+    // not on this screen.
+    if (childId) {
+      supabase.rpc('award_mystery_chest', {
+        p_child_id: childId,
+        p_source_type: isWeeklyTest ? 'weekly_test' : 'quiz_complete',
+        p_source_id: weeklyTestId ?? null,
+      });
     }
 
     onComplete(score, total);
@@ -238,7 +389,7 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
     );
   }
 
-  const progress = ((idx + (phase === 'feedback' ? 1 : 0)) / questions.length) * 100;
+  const progress = ((idx + (phase === 'feedback' ? 1 : 0)) / totalPlanned) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-twilight-deep via-twilight to-twilight-deep flex flex-col">
@@ -256,7 +407,7 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
                   style={{ width: `${progress}%` }} />
               </div>
             </div>
-            <span className="text-parchment-dim/70 text-sm font-semibold font-ledger">{idx + 1}/{questions.length}</span>
+            <span className="text-parchment-dim/70 text-sm font-semibold font-ledger">{idx + 1}/{totalPlanned}</span>
           </div>
 
           {isWeeklyTest && (
@@ -325,7 +476,7 @@ export function QuizPage({ childId, category, isWeeklyTest = false, questionIds,
               )}
               <button onClick={handleNext}
                 className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-quest-goldDim to-quest-gold text-twilight-deep rounded-2xl font-bold font-display text-lg hover:shadow-glow transition-all active:scale-95 shadow-lg">
-                {idx + 1 >= questions.length ? 'See Results' : 'Next Question'}
+                {idx + 1 >= totalPlanned ? 'See Results' : 'Next Question'}
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>

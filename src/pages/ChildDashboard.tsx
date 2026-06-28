@@ -4,6 +4,9 @@ import { calculateReadiness, daysUntilExam, formatCountdown } from '../lib/readi
 import { getExamProfile } from '../lib/examProfiles';
 import { useAuth } from '../context/AuthContext';
 import { AvatarDisplay } from '../components/AvatarDisplay';
+import { CompanionCard } from '../components/CompanionCard';
+import { CompanionChooserPage } from '../components/CompanionChooserPage';
+import { MysteryChestModal, MysteryChest } from '../components/MysteryChestModal';
 import { ArrowLeft, Flame, Star, Trophy, Zap, Target, BookOpen, ChevronRight, Calendar, Award, TrendingUp, Play, ChartBar as BarChart2, LogOut, Coins, ShoppingBag } from 'lucide-react';
 
 interface Props {
@@ -26,6 +29,8 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
   const [coinBalance, setCoinBalance] = useState(0);
   const [loading, setLoading]         = useState(true);
   const [awardingLogin, setAwardingLogin] = useState(false);
+  const [pendingChest, setPendingChest] = useState<MysteryChest | null>(null);
+  const [hasCompanion, setHasCompanion] = useState<boolean | null>(null); // null = not checked yet
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -49,6 +54,18 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
   }, [childId]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Check for any unopened mystery chest (most likely just earned from finishing
+  // a quiz) and surface it as a modal the moment the dashboard appears.
+  useEffect(() => {
+    if (!childId) return;
+    supabase.from('mystery_chests').select('id, child_id, is_opened')
+      .eq('child_id', childId).eq('is_opened', false)
+      .order('created_at', { ascending: true }).limit(1).maybeSingle()
+      .then(({ data }) => {
+        if (data) setPendingChest(data as MysteryChest);
+      });
+  }, [childId]);
 
   // Award daily login XP once per day
   useEffect(() => {
@@ -102,6 +119,13 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
     );
   }
 
+  // hasCompanion starts as null (not checked yet, via CompanionCard's onLoaded callback)
+  // and becomes false if the child genuinely has none — only redirect to the chooser
+  // once we're sure, to avoid a flash of the wrong screen while it's still loading.
+  if (hasCompanion === false) {
+    return <CompanionChooserPage childId={childId} onChosen={() => setHasCompanion(true)} />;
+  }
+
   if (!child) return null;
 
   const readinessResult = calculateReadiness(masteries, attempts, weeklyCount);
@@ -128,6 +152,7 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
                 <ArrowLeft className="w-5 h-5 text-parchment-dim" />
               </button>
             )}
+            <CompanionCard childId={childId} compact onLoaded={(c) => setHasCompanion(!!c)} />
             <div className="flex-1" />
             <button onClick={onOpenShop}
               className="flex items-center gap-1.5 bg-quest-gold/15 border border-quest-gold/30 rounded-full px-3 py-1.5 hover:bg-quest-gold/25 transition-all">
@@ -373,6 +398,16 @@ export function ChildDashboard({ childId, onBack, onStartQuiz, onStartWeeklyTest
 
         </div>
       </div>
+
+      {pendingChest && (
+        <MysteryChestModal
+          chest={pendingChest}
+          onClose={() => {
+            setPendingChest(null);
+            load(); // refresh coin balance / inventory in case the chest awarded either
+          }}
+        />
+      )}
     </div>
   );
 }
