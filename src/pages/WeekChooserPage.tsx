@@ -24,6 +24,10 @@ const LANDMARK_ICONS = ['🏰', '🗼', '⛺', '🌉', '🏯', '🛖'];
 export function WeekChooserPage({ childId, onStartWeek, onBack }: Props) {
   const [child, setChild]       = useState<ChildRecord | null>(null);
   const [tests, setTests]       = useState<WeeklyTestRecord[]>([]);
+  // Maps week_number -> unlock_threshold (the score % needed to unlock the next week),
+  // sourced from curriculum_weeks so the map can show pass/fail at a glance rather than
+  // just a bare score number.
+  const [thresholds, setThresholds] = useState<Map<number, number>>(new Map());
   const [loading, setLoading]   = useState(true);
   const [generatingWeek, setGeneratingWeek] = useState<number | null>(null);
   const [error, setError]       = useState('');
@@ -34,9 +38,15 @@ export function WeekChooserPage({ childId, onStartWeek, onBack }: Props) {
     Promise.all([
       supabase.from('children').select('*').eq('id', childId).single(),
       supabase.from('ai_weekly_tests').select('id,week_number,question_ids,completed_at,score').eq('child_id', childId),
-    ]).then(([childRes, testsRes]) => {
+      supabase.from('curriculum_weeks').select('week_number,unlock_threshold'),
+    ]).then(([childRes, testsRes, weeksRes]) => {
       setChild(childRes.data as ChildRecord | null);
       setTests((testsRes.data ?? []) as WeeklyTestRecord[]);
+      const map = new Map<number, number>();
+      for (const w of (weeksRes.data ?? []) as { week_number: number; unlock_threshold: number }[]) {
+        map.set(w.week_number, w.unlock_threshold);
+      }
+      setThresholds(map);
       setLoading(false);
     });
   };
@@ -159,9 +169,15 @@ export function WeekChooserPage({ childId, onStartWeek, onBack }: Props) {
             const done       = completedWeeks.has(week);
             const unlocked   = week <= maxUnlocked;
             const isCurrent  = unlocked && !done;
+            const testRow    = tests.find(t => t.week_number === week);
+            // A row exists (generate_child_test already ran for this week) but has no
+            // completed_at yet — the child started this week's quiz and didn't finish it.
+            const inProgress = unlocked && !done && !!testRow && !testRow.completed_at;
             const generating = generatingWeek === week;
             const difficulty = profile.difficultyProgression[i]?.difficulty ?? 5;
-            const score      = tests.find(t => t.week_number === week)?.score;
+            const score      = testRow?.score;
+            const threshold  = thresholds.get(week) ?? 85; // fallback matches curriculum_weeks' own column default
+            const passedThreshold = score != null && score >= threshold;
             const { x, y }   = points[i];
             const icon       = LANDMARK_ICONS[i % LANDMARK_ICONS.length];
 
@@ -175,22 +191,27 @@ export function WeekChooserPage({ childId, onStartWeek, onBack }: Props) {
                   onClick={() => unlocked && !generating && handleWeekTap(week)}
                   disabled={!unlocked || generating}
                   className={`relative w-20 h-20 rounded-full flex items-center justify-center text-3xl transition-all border-[3px] ${
-                    done      ? 'bg-realm-emerald/20 border-realm-emerald shadow-glow-emerald' :
-                    isCurrent ? 'bg-quest-gold/20 border-quest-gold shadow-glow animate-pulse-ring' :
-                                'bg-white/5 border-white/10 opacity-60'
+                    done       ? 'bg-realm-emerald/20 border-realm-emerald shadow-glow-emerald' :
+                    inProgress ? 'bg-quest-gold/10 border-quest-gold/60 border-dashed shadow-glow' :
+                    isCurrent  ? 'bg-quest-gold/20 border-quest-gold shadow-glow animate-pulse-ring' :
+                                 'bg-white/5 border-white/10 opacity-60'
                   } ${unlocked && !generating ? 'active:scale-90 hover:scale-105' : 'cursor-not-allowed'}`}
                 >
                   {generating ? (
                     <div className="w-7 h-7 border-2 border-quest-gold border-t-transparent rounded-full animate-spin" />
                   ) : unlocked ? (
-                    <span className={!done && !isCurrent ? 'opacity-50' : ''}>{icon}</span>
+                    <span className={!done && !isCurrent && !inProgress ? 'opacity-50' : ''}>{icon}</span>
                   ) : (
                     <Lock className="w-7 h-7 text-white/25" />
                   )}
 
-                  {/* Score badge for completed weeks */}
+                  {/* Score badge for completed weeks — green if it cleared the unlock
+                      threshold, coral if it didn't (so a child can tell at a glance
+                      whether a past attempt actually passed, not just see a number) */}
                   {done && score != null && (
-                    <div className="absolute -bottom-1.5 -right-1.5 bg-realm-emerald text-twilight-deep text-[10px] font-bold font-ledger px-1.5 py-0.5 rounded-full border-2 border-twilight-deep">
+                    <div className={`absolute -bottom-1.5 -right-1.5 text-twilight-deep text-[10px] font-bold font-ledger px-1.5 py-0.5 rounded-full border-2 border-twilight-deep ${
+                      passedThreshold ? 'bg-realm-emerald' : 'bg-realm-coral'
+                    }`}>
                       {score}%
                     </div>
                   )}
@@ -201,18 +222,28 @@ export function WeekChooserPage({ childId, onStartWeek, onBack }: Props) {
                       <Star className="w-4 h-4 text-quest-gold fill-quest-gold" />
                     </div>
                   )}
+
+                  {/* Paused-progress indicator for a started-but-unfinished week */}
+                  {inProgress && (
+                    <div className="absolute -bottom-1.5 -right-1.5 bg-quest-gold text-twilight-deep text-[9px] font-bold font-ledger px-1.5 py-0.5 rounded-full border-2 border-twilight-deep">
+                      ⏸
+                    </div>
+                  )}
                 </button>
 
                 <div className="mt-2 text-center max-w-[88px]">
                   <p className={`text-xs font-bold font-display leading-tight ${
-                    done ? 'text-realm-emerald' : unlocked ? 'text-parchment' : 'text-parchment-dim/30'
+                    done ? 'text-realm-emerald' : inProgress ? 'text-quest-gold' : unlocked ? 'text-parchment' : 'text-parchment-dim/30'
                   }`}>
                     Week {week}
                   </p>
                   {generating && (
                     <p className="text-quest-gold/70 text-[10px] mt-0.5">Building...</p>
                   )}
-                  {!generating && unlocked && !done && (
+                  {!generating && inProgress && (
+                    <p className="text-quest-gold/80 text-[10px] mt-0.5 font-semibold">Continue</p>
+                  )}
+                  {!generating && unlocked && !done && !inProgress && (
                     <p className="text-parchment-dim/50 text-[10px] mt-0.5">Lvl {difficulty}/10</p>
                   )}
                 </div>
