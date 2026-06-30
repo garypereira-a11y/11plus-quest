@@ -5,7 +5,8 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ── Core types ────────────────────────────────────────────────────────────────
-export interface Profile {
+export interface Profile 
+last_child_id?: string | null;{
   id: string;
   name: string;
   email: string;

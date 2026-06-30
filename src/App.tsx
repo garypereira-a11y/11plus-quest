@@ -117,7 +117,21 @@ function AppInner() {
     return (
       <>
         <ParentDashboard
-          onSelectChild={(childId) => setPage({ name: 'child-dashboard', childId })}
+          onSelectChild={async (childId) => {
+
+    await supabase
+        .from("profiles")
+        .update({
+            last_child_id: childId
+        })
+        .eq("id", user!.id);
+
+    setPage({
+        name:"child-dashboard",
+        childId
+    });
+
+}}
           onAddChild={() => setPage({ name: 'child-wizard', isFirst: false })}
         />
         <PWAInstallPrompt />
