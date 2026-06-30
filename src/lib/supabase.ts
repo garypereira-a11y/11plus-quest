@@ -1,12 +1,37 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL  as string;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-export const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+
+export const supabase = createClient(
+  supabaseUrl,
+  supabaseAnonKey
+);
+
+export { supabase };
 
 // ── Core types ────────────────────────────────────────────────────────────────
-export interface Profile 
-last_child_id?: string | null;{
+export interface Profile {
+  id: string;
+  name: string;
+  email: string;
+
+  is_parent: boolean;
+  role: 'parent' | 'child' | 'admin';
+
+  last_child_id?: string | null;
+
+  avatar: string;
+  stars: number;
+  xp: number;
+  level: number;
+  total_correct: number;
+  treasure_keys: number;
+  parent_id: string | null;
+  verification_code: string;
+  created_at: string;
+}
   id: string;
   name: string;
   email: string;
